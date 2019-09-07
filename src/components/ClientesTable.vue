@@ -41,7 +41,6 @@
           :loading="loading"
           loading-text="Cargando... espere, por favor."
           class="elevation-1"
-          dense
           :hide-default-header="isMobile"
           v-if="!isMobile"
         >
@@ -74,7 +73,7 @@
             <v-icon @click="$emit('editClient', item)" small class="mr-2" dark color="light-blue accent-3">edit</v-icon>
             <v-icon @click="deleteItem(item)" small dark color="red lighten-1">delete</v-icon>
           </template>
-          <template v-slot:item.opc="{ item }" v-if="options == 2">
+          <template v-slot:item.opc="{ item }" v-else>
             <v-icon @click="$emit('selectClient', item)" small class="mr-2" dark color="light-blue accent-3">check</v-icon>
           </template>
           <template v-slot:no-results>

@@ -6,12 +6,17 @@ import Home from './views/Home'
 import Prestamos from './views/Prestamos'
 import Clientes from './views/Clientes'
 import Pagos from './views/Pagos'
+import Gastos from './views/Gastos'
 
 Vue.use(Router);
 
 export default new Router({
     mode: 'history',
     routes: [{
+            path: '/gastos',
+            name: 'gastos',
+            component: Gastos
+        }, {
             path: '/pagos',
             name: 'pagos',
             component: Pagos,
