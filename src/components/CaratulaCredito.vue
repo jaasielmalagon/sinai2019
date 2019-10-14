@@ -51,13 +51,13 @@
           <v-flex class="recuadro" xs4>
             <v-card :color="blanco">
               <v-card-title class="ml-1 title font-weight-regular">PLAZO DE CRÉDITO:</v-card-title>
-              <v-card-text class="mx-2 body-2">{{prestamo.plazo}} {{prestamo.tipo}}</v-card-text>
+              <v-card-text class="mx-2 body-2">{{prestamo.plazo}} {{prestamo.tipo == "D" ? "Dias naturales" : "Semanas naturales"}}</v-card-text>
             </v-card>
           </v-flex>
           <v-flex class="recuadro" xs4>
             <v-card :color="blanco">
               <v-card-title class="ml-1 title font-weight-regular">FECHA LÍMITE DE PAGO:</v-card-title>
-              <v-card-text class="mx-2 body-2">{{prestamo.tabla[15].fecha}}</v-card-text>
+              <v-card-text class="mx-2 body-2"> {{prestamo.tabla[prestamo.tabla.length-1].fecha}}</v-card-text>
             </v-card>
           </v-flex>
           <v-flex class="recuadro" xs6>
@@ -218,10 +218,11 @@ export default {
       .orderByKey()
       .equalTo(this.prestamo.solicitud)
       .on("value", snapshot => {
-        let snap = snapshot.val();
+        let snap = snapshot.val();        
         for (let key in snap) {
           aval = snap[key].aval;
-          if (aval != "") {
+          // console.log(aval);
+          if (aval != "" && aval != undefined) {
             this.db
               .ref("/personas")
               .orderByKey()

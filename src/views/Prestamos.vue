@@ -18,12 +18,7 @@
       </v-col>
     </v-row>
     <v-row justify="center">
-      <v-dialog
-        v-model="formDialog"
-        fullscreen
-        hide-overlay        
-        transition="dialog-bottom-transition"
-      >
+      <v-dialog v-model="formDialog" fullscreen hide-overlay transition="dialog-bottom-transition">
         <v-card>
           <v-toolbar dark color="#4472C4">
             <v-btn icon dark @click="cancel(1)">
@@ -33,7 +28,7 @@
             <v-spacer></v-spacer>
             <v-toolbar-items>
               <v-btn
-                @click="confirmSave = true"
+                @click="confirmationDialog = true"
                 dark
                 icon
                 :disabled="prestamo.tabla =='' || prestamo.key != ''"
@@ -156,8 +151,8 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="red darken-1" flat @click="confirmationDialog = false">No, cancelar</v-btn>
-            <v-btn color="green darken-1" flat @click="saveData">Si, continuar</v-btn>
+            <v-btn color="red darken-1" text @click="confirmationDialog = false">No, cancelar</v-btn>
+            <v-btn color="green darken-1" text @click="saveData">Si, continuar</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -305,14 +300,14 @@ export default {
         });
       return result;
     },
-    generarPrestamo() {
+    /*generarPrestamo() {
       this.loadingDialog = true;
       let formInvalid = this.$refs.prestamoForm.submit();
       if (formInvalid == false) {
         this.prestamo.inicio = this.getDate();
         if (this.prestamo.inicio != null) {
           let pagoCapital = this.prestamo.capital / this.prestamo.plazo;
-          let pagoInteres =
+          let pagoInteres = 
             (this.prestamo.capital * this.prestamo.tasa * 4) /
             this.prestamo.plazo;
           this.prestamo.pago = parseFloat(
@@ -336,12 +331,72 @@ export default {
         this.closeAlert();
       }
     },
-    tablaAmortizacion() {
-      let pagoCapital = this.prestamo.capital / this.prestamo.plazo;
-      let pagoInteres =
+    tablaAmortizacion() { 
+      let pagoCapital = this.prestamo.capital / this.prestamo.plazo;//capital / tiempo
+      let pagoInteres = //Ej: ($1000 x 8% x 4 semanas) / nSemanas
         (this.prestamo.capital * this.prestamo.tasa * 4) / this.prestamo.plazo;
       let totalPago = pagoCapital + pagoInteres;
       let prestamo = this.prestamo.capital + this.prestamo.intereses;
+      // console.log(this.prestamo.tipo);
+
+      for (let i = 0; i < this.prestamo.plazo; i++) {
+        let pagoN = {
+          nPago: i + 1,
+          fecha: this.siguientePago(i + 1),
+          vencimiento: this.fechaVencimiento(i + 1), //CAMBIAR
+          pagoCapital: parseFloat(pagoCapital.toFixed(2)),
+          pagoInteres: parseFloat(pagoInteres.toFixed(2)),
+          totalPago: parseFloat(totalPago.toFixed(2)),
+          final: parseFloat((prestamo - totalPago * (i + 1)).toFixed(2)),
+          inicial: parseFloat((prestamo - totalPago * i).toFixed(2)),
+          estado: "A"
+        };
+        this.prestamo.tabla.push(pagoN);
+      }
+      return this.prestamo.tabla.length == this.prestamo.plazo;
+    },*/
+    generarPrestamo() {
+      this.loadingDialog = true;
+      let formInvalid = this.$refs.prestamoForm.submit();
+      if (formInvalid == false) {        
+        this.prestamo.inicio = this.getDate();
+        if (this.prestamo.inicio != null) {
+          
+          let pagoCapital = this.prestamo.capital / this.prestamo.plazo;
+          let pagoInteres = parseFloat(
+            (this.prestamo.capital * this.prestamo.tasa - pagoCapital).toFixed(
+              2
+            )
+          );
+          this.prestamo.pago = parseFloat(
+            (pagoCapital + pagoInteres).toFixed(2)
+          );
+          this.prestamo.intereses = parseFloat(
+            (pagoInteres * this.prestamo.plazo).toFixed(2)
+          );
+          this.prestamo.totalPrestamo = parseFloat(
+            this.prestamo.intereses + this.prestamo.capital
+          );          
+          this.tablaAmortizacion();
+          this.loadingDialog = false;
+        }
+      } else {
+        this.loadingDialog = false;
+        this.alerta(
+          "El préstamo no ha sido generado correctamente, por favor verifique la información y reintente.",
+          "error"
+        );
+        this.closeAlert();
+      }
+    },
+    tablaAmortizacion() {
+      let pagoCapital = this.prestamo.capital / this.prestamo.plazo; //capital / tiempo
+      let pagoInteres = parseFloat(
+        (this.prestamo.capital * this.prestamo.tasa - pagoCapital).toFixed(2)
+      );
+      let totalPago = pagoCapital + pagoInteres;
+      let prestamo = this.prestamo.capital + this.prestamo.intereses;
+      this.prestamo.tabla = [];
       for (let i = 0; i < this.prestamo.plazo; i++) {
         let pagoN = {
           nPago: i + 1,
@@ -358,21 +413,54 @@ export default {
       }
       return this.prestamo.tabla.length == this.prestamo.plazo;
     },
-    siguientePago(semanas) {
+    siguientePago(semanas_dias) {
+      let tiempoSgtePago = 0;
+      let nDias = this.prestamo.tipo == "D" ? 1 : 7;
+      // if (this.prestamo.tipo == "S") {
+      //   //          milis * segs * mins * hrs * dias * 7 dias * semanas
+      //   tiempoSgtePago = 1000 * 60 * 60 * 24 * 7 * semanas_dias;
+      // } else if (this.prestamo.tipo == "D") {
+      //   //           milis * segs * mins * hrs * dias
+      //   tiempoSgtePago = 1000 * 60 * 60 * 24 * 1 * semanas_dias;
+      // }
+      tiempoSgtePago = 1000 * 60 * 60 * 24 * nDias * semanas_dias;
       let hoy = new Date();
-      let semanasEnMilisegundos = 1000 * 60 * 60 * 24 * 7 * semanas;
-      let suma = hoy.getTime() + semanasEnMilisegundos; //getTime devuelve milisegundos de esa fecha
+      let suma = hoy.getTime() + tiempoSgtePago; //getTime devuelve milisegundos de esa fecha
       let proximaFecha = new Date(suma);
       var dd = String(proximaFecha.getDate()).padStart(2, "0");
       var mm = String(proximaFecha.getMonth() + 1).padStart(2, "0"); //January is 0!
       var yyyy = proximaFecha.getFullYear();
       return dd + "-" + mm + "-" + yyyy;
     },
-    fechaVencimiento(semanas) {
+    /*siguientePago(semanas_dias) {
+      let tiempoSgtePago = 0;
+      if (this.prestamo.tipo == "S") {
+        //          milis * segs * mins * hrs * dias * 7 dias * semanas
+        tiempoSgtePago = 1000 * 60 * 60 * 24 * 7 * semanas_dias;
+      } else if (this.prestamo.tipo == "D") {
+        //           milis * segs * mins * hrs * dias
+        tiempoSgtePago = 1000 * 60 * 60 * 24 * 1;
+      }
       let hoy = new Date();
-      let semanasEnMilisegundos = 1000 * 60 * 60 * 24 * 7 * semanas;
-      let diaEnMilisegundos = 1000 * 60 * 60 * 24;
-      let suma = hoy.getTime() - diaEnMilisegundos + semanasEnMilisegundos; //getTime devuelve milisegundos de esa fecha
+      let suma = hoy.getTime() + tiempoSgtePago; //getTime devuelve milisegundos de esa fecha
+      let proximaFecha = new Date(suma);
+      var dd = String(proximaFecha.getDate()).padStart(2, "0");
+      var mm = String(proximaFecha.getMonth() + 1).padStart(2, "0"); //January is 0!
+      var yyyy = proximaFecha.getFullYear();
+      return dd + "-" + mm + "-" + yyyy;
+    },*/
+    fechaVencimiento(semanas_dias) {
+      let tiempoSgtePago = 0;
+      if (this.prestamo.tipo == "S") {
+        //          milis * segs * mins * hrs * dias * 7 dias * semanas
+        tiempoSgtePago = 1000 * 60 * 60 * 24 * 7 * semanas_dias;
+      } else if (this.prestamo.tipo == "D") {
+        //           milis * segs * mins * hrs * dias
+        tiempoSgtePago = 1000 * 60 * 60 * 24 * 1;
+      }
+      let hoy = new Date();
+      let unDiaEnMilisegundos = 1000 * 60 * 60 * 24;
+      let suma = hoy.getTime() - unDiaEnMilisegundos + tiempoSgtePago; //getTime devuelve milisegundos de esa fecha
       let proximaFecha = new Date(suma);
       var dd = String(proximaFecha.getDate()).padStart(2, "0");
       var mm = String(proximaFecha.getMonth() + 1).padStart(2, "0"); //January is 0!
@@ -388,7 +476,7 @@ export default {
       fecha = dd + "-" + mm + "-" + yyyy;
       return fecha;
     },
-    setSolicitud(item) {      
+    setSolicitud(item) {
       this.loadingDialog = true;
       if (!this.buscarPrestamoActivo(item)) {
         this.db
@@ -397,11 +485,11 @@ export default {
           .equalTo(item.key)
           .once("value", snapshot => {
             let snap = snapshot.val();
-            this.solicitud = null;            
+            this.solicitud = null;
             for (let key in snap) {
               this.solicitud = snap[key];
               this.solicitud.key = key;
-            }            
+            }
             if (this.solicitud != null && this.solicitud.key != "") {
               this.prestamo.solicitud = this.solicitud.key;
               this.prestamo.comisionista = item.comisionista;
@@ -430,7 +518,7 @@ export default {
       }
     },
     selectItem(item) {
-      this.formTitle = "Generar préstamo";
+      this.formTitle = "Detalles del préstamo";
       this.formDialog = true;
       Object.assign(this.prestamo, item);
       // console.log(this.prestamo);

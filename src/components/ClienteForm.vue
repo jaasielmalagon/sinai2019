@@ -9,8 +9,8 @@
   <div>
     <v-form>
       <v-container>
-        <v-layout row wrap>
-          <v-flex xs12 md6 v-if="!esReferencia">
+        <v-row>
+          <v-col cols="12" md="6" v-if="!esReferencia">
             <v-select
               v-model="cliente.comisionista"
               :items="comisionistas"
@@ -20,8 +20,8 @@
               no-data-text="No hay comisionistas"
               @input="generateCurp"
             ></v-select>
-          </v-flex>
-          <v-flex xs12 md6>
+          </v-col>
+          <v-col cols="12" md="6">
             <v-menu
               ref="menu"
               v-model="menu"
@@ -52,8 +52,8 @@
                 @input="generateCurp"
               ></v-date-picker>
             </v-menu>
-          </v-flex>
-          <v-flex xs12 md4>
+          </v-col>
+          <v-col cols="12" md="4">
             <v-text-field
               v-model="cliente.nombre"
               :error-messages="nombreErrors"
@@ -65,8 +65,8 @@
               @keyup="uppercasedName"
               @change="generateCurp"
             ></v-text-field>
-          </v-flex>
-          <v-flex xs12 md4>
+          </v-col>
+          <v-col cols="12" md="4">
             <v-text-field
               v-model="cliente.apaterno"
               :error-messages="apaternoErrors"
@@ -78,8 +78,8 @@
               @keyup="uppercasedLastname"
               @change="generateCurp"
             ></v-text-field>
-          </v-flex>
-          <v-flex xs12 md4>
+          </v-col>
+          <v-col cols="12" md="4">
             <v-text-field
               v-model="cliente.amaterno"
               :error-messages="amaternoErrors"
@@ -91,11 +91,11 @@
               @keyup="uppercasedLastname"
               @change="generateCurp"
             ></v-text-field>
-          </v-flex>
-          <v-flex xs5>
+          </v-col>
+          <v-col cols="12" xs="5">
             <v-text-field v-model="cliente.curp" label="CURP" disabled readonly></v-text-field>
-          </v-flex>
-          <v-flex xs3>
+          </v-col>
+          <v-col cols="12" xs="3">
             <v-text-field
               v-model="homoclave"
               :error-messages="homoclaveErrors"
@@ -106,8 +106,8 @@
               @blur="$v.homoclave.$touch()"
               @change="generateCurp"
             ></v-text-field>
-          </v-flex>
-          <v-flex xs4>
+          </v-col>
+          <v-col cols="12" xs="4">
             <v-text-field
               v-model="cliente.ocr"
               :error-messages="ocrErrors"
@@ -118,15 +118,15 @@
               @blur="$v.cliente.ocr.$touch()"
               @change="generateCurp"
             ></v-text-field>
-          </v-flex>
-          <v-flex xs7 md4>
+          </v-col>
+          <v-col cols="12" xs="7" md="4">
             <v-radio-group row v-model="cliente.sexo" :error-messages="sexoErrors" @change="generateCurp">
               <div>Sexo:</div>
               <v-radio label="Hombre" value="H"></v-radio>
               <v-radio label="Mujer" value="M"></v-radio>
             </v-radio-group>
-          </v-flex>
-          <v-flex xs5 md4 v-if="!esReferencia">
+          </v-col>
+          <v-col cols="12" xs="5" md="4" v-if="!esReferencia">
             <v-switch
               @change="$emit('esCasado', switch1)"
               @input="generateCurp"
@@ -134,8 +134,8 @@
               color="success"
               label="El solicitante es casado."
             ></v-switch>
-          </v-flex>
-          <v-flex xs7>
+          </v-col>
+          <v-col cols="12" xs="7">
             <v-select
               v-model="cliente.entidad"
               :items="items"
@@ -148,8 +148,8 @@
               @blur="$v.cliente.entidad.$touch()"
               @input="generateCurp"
             ></v-select>
-          </v-flex>
-          <v-flex xs5>
+          </v-col>
+          <v-col cols="12" xs="5">
             <v-text-field
               v-model="cliente.telefono"
               :error-messages="phoneErrors"
@@ -160,8 +160,8 @@
               @blur="$v.cliente.telefono.$touch()"
               @change="generateCurp"
             ></v-text-field>
-          </v-flex>
-          <v-flex xs12>
+          </v-col>
+          <v-col cols="12">
             <v-text-field
               v-model="cliente.direccion"
               :error-messages="addressErrors"
@@ -172,8 +172,8 @@
               @keyup="uppercasedAddress"
               @change="generateCurp"
             ></v-text-field>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
       </v-container>
     </v-form>    
   </div>

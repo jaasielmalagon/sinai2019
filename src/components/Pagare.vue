@@ -98,7 +98,7 @@
                     :placeholder="prestamo.cliente.nombre + ' ' + prestamo.cliente.apaterno + ' ' + prestamo.cliente.amaterno"
                     :value="prestamo.cliente.nombre + ' ' + prestamo.cliente.apaterno + ' ' + prestamo.cliente.amaterno"
                     :v-model="prestamo.cliente.nombre + ' ' + prestamo.cliente.apaterno + ' ' + prestamo.cliente.amaterno"
-                    box
+                    filled
                     readonly
                   ></v-text-field>
                 </v-flex>
@@ -108,7 +108,7 @@
                     :placeholder="prestamo.cliente.direccion"
                     :value="prestamo.cliente.direccion"
                     :v-model="prestamo.cliente.direccion"
-                    box
+                    filled
                     readonly
                   ></v-text-field>
                 </v-flex>
@@ -118,7 +118,7 @@
                     :placeholder="prestamo.cliente.telefono"
                     :value="prestamo.cliente.telefono"
                     :v-model="prestamo.cliente.telefono"
-                    box
+                    filled
                     readonly
                   ></v-text-field>
                 </v-flex>
@@ -137,7 +137,7 @@
                     :placeholder="aval.nombre + ' ' + aval.apaterno + ' ' + aval.amaterno"
                     :value="aval.nombre + ' ' + aval.apaterno + ' ' + aval.amaterno"
                     :v-model="aval.nombre + ' ' + aval.apaterno + ' ' + aval.amaterno"
-                    box
+                    filled
                     readonly
                   ></v-text-field>
                 </v-flex>
@@ -147,7 +147,7 @@
                     :placeholder="aval.direccion"
                     :value="aval.direccion"
                     :v-model="aval.direccion"
-                    box
+                    filled
                     readonly
                   ></v-text-field>
                 </v-flex>
@@ -157,7 +157,7 @@
                     :placeholder="aval.telefono"
                     :value="aval.telefono"
                     :v-model="aval.telefono"
-                    box
+                    filled
                     readonly
                   ></v-text-field>
                 </v-flex>
@@ -203,7 +203,7 @@ export default {
         let snap = snapshot.val();
         for (let key in snap) {
           aval = snap[key].aval;
-          if (aval != "") {
+          if (aval != "" && aval != undefined) {
             this.db
               .ref("/personas")
               .orderByKey()
@@ -218,6 +218,8 @@ export default {
           } else {
             this.aval = {
               nombre: "NO DISPONIBLE",
+              apaterno: "",
+              amaterno: "",
               direccion: "NO DISPONIBLE",
               telefono: "NO DISPONIBLE"
             };

@@ -18,108 +18,134 @@
       </v-col>
     </v-row>
     <v-row justify="center">
-      <v-dialog
-        v-model="showForm"
-        fullscreen
-        hide-overlay        
-        transition="dialog-bottom-transition"
-      >
-        <v-card>
-          <v-toolbar color="#4472C4" dark>
-            <v-btn icon dark @click="cancel">
-              <v-icon>close</v-icon>
-            </v-btn>
-            <v-toolbar-title>{{ formTitle }}</v-toolbar-title>
-            <v-spacer></v-spacer>
-            <v-toolbar-items>
-              <v-btn icon dark @click="saveData">
+      <v-dialog v-model="showForm" fullscreen transition="dialog-bottom-transition">
+        <v-card id="lateral">
+          <v-toolbar dense color="#0051A0">
+            <template v-slot:extension>
+              <v-btn @click="saveData" fab color="green" dark small bottom right absolute>
                 <v-icon>save</v-icon>
               </v-btn>
-            </v-toolbar-items>
+            </template>
+            <v-tabs v-model="tabs" background-color="#0051A0" centered dark icons-and-text>
+              <v-tabs-slider></v-tabs-slider>
+
+              <v-tab href="#one">
+                Diario
+                <v-icon>payment</v-icon>
+              </v-tab>
+
+              <v-tab href="#two">
+                Semanal
+                <v-icon>remove_red_eye</v-icon>
+              </v-tab>
+            </v-tabs>
           </v-toolbar>
-          <v-card-text>
-            <v-flex xs10 d-flex offset-xs1>
-              <div>
-                <v-alert
-                  v-model="alertShow"
-                  dismissible
-                  transition="scale-transition"
-                  :color="alertStyle"
-                  icon="warning"
-                >{{alertMessage}}</v-alert>
-              </div>
-            </v-flex>
-            <v-divider class="divisor"></v-divider>
+          <v-card-text flat class="grey lighten-3 text-center">
+            <v-tabs-items v-model="tabs">
+              <v-tab-item value="one">
+                <v-card flat class="grey lighten-3 text-center">
+                  <v-card-text style="overflow-y: scroll; max-height:800px; margin-top: 8px;">
+                    <v-alert
+                      :value="alertShow"
+                      dismissible
+                      dense
+                      outlined
+                      :type="alertStyle"
+                      transition="scale-transition"
+                    >{{alertMessage}}</v-alert>
+                    <cliente-diario-form
+                      ref="form0"
+                      :initial-client="clientediario"
+                      :comisionistas="comisionistas"
+                    ></cliente-diario-form>
+                  </v-card-text>
+                </v-card>
+              </v-tab-item>
+              <v-tab-item value="two">
+                <v-card flat class="grey lighten-3 text-center">
+                  <v-card-text style="overflow-y: scroll; max-height:800px; margin-top: 8px;">
+                    <v-flex xs10 d-flex>
+                      <v-alert
+                        :value="alertShow"
+                        dismissible
+                        dense
+                        outlined
+                        :type="alertStyle"
+                        transition="scale-transition"
+                      >{{alertMessage}}</v-alert>
+                    </v-flex>
+                    <v-divider class="divisor"></v-divider>
 
-            <v-flex xs10 d-flex offset-xs1>
-              <v-card>
-                <v-toolbar color="#4472C4" dark>
-                  <v-toolbar-title>Datos del solicitante</v-toolbar-title>
-                </v-toolbar>
-                <!-- <cliente-form
-              v-if="selectedItem.key !== ''"
-              v-if="selectedItem.key === ''"
-              :initial-client="selectedItem"
-              :comisionistas="comisionistas"
-              :es-referencia="false"
-              v-on:esCasado="isMarried($event)"
-                ></cliente-form>-->
-                <cliente-form
-                  ref="form1"
-                  :initial-client="solicitante"
-                  :comisionistas="comisionistas"
-                  :es-referencia="false"
-                  v-on:esCasado="isMarried($event)"
-                ></cliente-form>
-              </v-card>
-            </v-flex>
-            <v-divider class="divisor"></v-divider>
+                    <v-flex xs12>
+                      <v-card>
+                        <v-toolbar color="#4472C4" dark>
+                          <v-toolbar-title>Datos del solicitante</v-toolbar-title>
+                        </v-toolbar>
+                        <cliente-form
+                          ref="form1"
+                          :initial-client="solicitante"
+                          :comisionistas="comisionistas"
+                          :es-referencia="false"
+                          v-on:esCasado="isMarried($event)"
+                        ></cliente-form>
+                      </v-card>
+                    </v-flex>
+                    <v-divider class="divisor"></v-divider>
 
-            <v-flex v-if="married" xs10 d-flex offset-xs1>
-              <v-card>
-                <v-toolbar color="#4472C4" dark>
-                  <v-toolbar-title>Datos del conyuge</v-toolbar-title>
-                </v-toolbar>
-                <cliente-form
-                  ref="form2"
-                  :initial-client="conyuge"
-                  :comisionistas="comisionistas"
-                  :es-referencia="true"
-                ></cliente-form>
-              </v-card>
-            </v-flex>
-            <v-divider v-if="married" class="divisor"></v-divider>
+                    <v-flex v-if="married" xs12>
+                      <v-card>
+                        <v-toolbar color="#4472C4" dark>
+                          <v-toolbar-title>Datos del conyuge</v-toolbar-title>
+                        </v-toolbar>
+                        <cliente-form
+                          ref="form2"
+                          :initial-client="conyuge"
+                          :comisionistas="comisionistas"
+                          :es-referencia="true"
+                        ></cliente-form>
+                      </v-card>
+                    </v-flex>
+                    <v-divider v-if="married" class="divisor"></v-divider>
 
-            <v-flex xs10 d-flex offset-xs1>
-              <v-card>
-                <v-toolbar color="#4472C4" dark>
-                  <v-toolbar-title>Datos de la referencia</v-toolbar-title>
-                </v-toolbar>
-                <cliente-form
-                  ref="form3"
-                  :initial-client="referencia"
-                  :comisionistas="comisionistas"
-                  :es-referencia="true"
-                ></cliente-form>
-              </v-card>
-            </v-flex>
-            <v-divider class="divisor"></v-divider>
+                    <v-flex xs12>
+                      <v-card>
+                        <v-toolbar color="#4472C4" dark>
+                          <v-toolbar-title>Datos de la referencia</v-toolbar-title>
+                        </v-toolbar>
+                        <cliente-form
+                          ref="form3"
+                          :initial-client="referencia"
+                          :comisionistas="comisionistas"
+                          :es-referencia="true"
+                        ></cliente-form>
+                      </v-card>
+                    </v-flex>
+                    <v-divider class="divisor"></v-divider>
 
-            <v-flex xs10 d-flex offset-xs1>
-              <v-card>
-                <v-toolbar color="#4472C4" dark>
-                  <v-toolbar-title>Datos del aval</v-toolbar-title>
-                </v-toolbar>
-                <cliente-form
-                  ref="form4"
-                  :initial-client="aval"
-                  :comisionistas="comisionistas"
-                  :es-referencia="true"
-                ></cliente-form>
-              </v-card>
-            </v-flex>
-            <v-divider class="divisor"></v-divider>
+                    <v-flex xs12>
+                      <v-card>
+                        <v-toolbar color="#4472C4" dark>
+                          <v-toolbar-title>Datos del aval</v-toolbar-title>
+                        </v-toolbar>
+                        <cliente-form
+                          ref="form4"
+                          :initial-client="aval"
+                          :comisionistas="comisionistas"
+                          :es-referencia="true"
+                        ></cliente-form>
+                      </v-card>
+                    </v-flex>
+                    <v-divider class="divisor"></v-divider>
+                  </v-card-text>
+                </v-card>
+              </v-tab-item>
+            </v-tabs-items>
           </v-card-text>
+          <!-- <v-fab-transition>
+            <v-btn :key="activeFab.icon" :color="activeFab.color" fab dark top right>
+              <v-icon>{{ activeFab.icon }}</v-icon>
+            </v-btn>
+          </v-fab-transition>-->
         </v-card>
       </v-dialog>
     </v-row>
@@ -129,6 +155,7 @@
 </template>
 
 <script>
+import ClienteDiarioForm from "../components/ClienteDiarioForm";
 import ClienteForm from "../components/ClienteForm";
 import ClientesTable from "../components/ClientesTable";
 import LoadingDialog from "../components/LoadingDialog";
@@ -137,7 +164,7 @@ import { setTimeout } from "timers";
 
 export default {
   name: "Clientes",
-  components: { ClienteForm, ClientesTable, LoadingDialog },
+  components: { ClienteForm, ClientesTable, LoadingDialog, ClienteDiarioForm },
   data() {
     return {
       db: config.db,
@@ -150,7 +177,7 @@ export default {
       widgets: false,
       married: false,
       alertMessage: "",
-      alertStyle: "",
+      alertStyle: "error",
       alertShow: false,
       comisionistas: [],
       clientes: [],
@@ -183,6 +210,22 @@ export default {
         entidad: "",
         tipo: "",
         comisionista: ""
+      },
+      clientediario: {
+        key: "",
+        nombre: "",
+        apaterno: "",
+        amaterno: "",
+        bornDate: "",
+        sexo: "",
+        curp: "",
+        ocr: "",
+        direccion: "",
+        telefono: "",
+        entidad: "",
+        tipo: 1,
+        comisionista: "",
+        ocupacion: ""
       },
       solicitante: {
         key: "",
@@ -243,7 +286,10 @@ export default {
         entidad: "",
         tipo: 4,
         comisionista: ""
-      }
+      },
+      tabs: null,
+      fab: false,
+      hidden: false
     };
   },
   methods: {
@@ -337,9 +383,45 @@ export default {
     saveData() {
       this.loadingDialog = true;
       if (
-        this.$refs.form1.submit() ||
-        this.$refs.form3.submit() ||
-        this.$refs.form4.submit() ||
+        typeof this.$refs.form0 !== "undefined" &&
+        this.$refs.form0.submit() == true
+      ) {
+        this.loadingDialog = false;
+        this.alert(
+          "Existen campos vacíos en la solicitud. Para continuar por favor rellene todos los campos.",
+          "error"
+        );
+        this.closeAlert();
+      } else if (
+        typeof this.$refs.form0 !== "undefined" &&
+        this.$refs.form0.submit() == false
+      ) {
+        //INSERTAR EN LA BDD
+        // alert("Insertando en la BDD");
+        let clienteKey = this.db
+          .ref("personas/")
+          .push(this.normalizedObject(this.clientediario, 1, "D")).key;
+
+        if (clienteKey != "") {
+          this.db
+            .ref("solicitudes/")
+            .push({
+              solicitante: clienteKey
+            })
+            .then(() => {
+              this.loadingDialog = false;
+              this.alert("Cliente guardado exitosamente", "success");
+              this.closeAlert();
+              Object.assign(this.clientediario, this.defaultCliente);
+            });
+        }
+      } else if (
+        ((typeof this.$refs.form1 == "undefined" ||
+          typeof this.$refs.form3 == "undefined" ||
+          typeof this.$refs.form4 == "undefined") &&
+          (this.$refs.form1.submit() ||
+            this.$refs.form3.submit() ||
+            this.$refs.form4.submit())) ||
         (this.married && this.$refs.form2.submit())
       ) {
         this.loadingDialog = false;
@@ -348,7 +430,15 @@ export default {
           "error"
         );
         this.closeAlert();
-      } else {
+      } else if (
+        ((typeof this.$refs.form1 !== "undefined" ||
+          typeof this.$refs.form3 !== "undefined" ||
+          typeof this.$refs.form4 !== "undefined") &&
+          (this.$refs.form1.submit() == false ||
+            this.$refs.form3.submit() == false ||
+            this.$refs.form4.submit() == false)) ||
+        (this.married && this.$refs.form2.submit())
+      ) {
         if (
           this.solicitante.curp.length >= 16 &&
           this.solicitante.key != "" &&
@@ -439,16 +529,16 @@ export default {
         ) {
           let solicitanteKey = this.db
             .ref("personas/")
-            .push(this.normalizedObject(this.solicitante, 1)).key;
+            .push(this.normalizedObject(this.solicitante, 1, "S")).key;
           let conyugeKey = this.db
             .ref("personas/")
-            .push(this.normalizedObject(this.conyuge, 2)).key;
+            .push(this.normalizedObject(this.conyuge, 2, "S")).key;
           let referenciaKey = this.db
             .ref("personas/")
-            .push(this.normalizedObject(this.referencia, 3)).key;
+            .push(this.normalizedObject(this.referencia, 3, "S")).key;
           let avalKey = this.db
             .ref("personas/")
-            .push(this.normalizedObject(this.aval, 4)).key;
+            .push(this.normalizedObject(this.aval, 4, "S")).key;
           if (
             solicitanteKey != "" &&
             // conyugeKey != "" &&
@@ -472,7 +562,7 @@ export default {
         }
       }
     },
-    normalizedObject(object, tipo) {
+    normalizedObject(object, tipo, tipoPrestamo) {
       return {
         nombre: object.nombre,
         apaterno: object.apaterno,
@@ -485,6 +575,7 @@ export default {
         telefono: object.telefono,
         entidad: object.entidad,
         tipo: tipo,
+        tipoPrestamo: tipoPrestamo,
         comisionista: object.comisionista,
         activo: 1
       };
@@ -494,7 +585,7 @@ export default {
         this.alertShow = false;
         this.alertIcon = "";
         this.alertMessage = "";
-        this.alertStyle = "";
+        // this.alertStyle = "";
         // this.cancel();
       }, 3000);
     },
@@ -503,6 +594,20 @@ export default {
       this.alertStyle = type;
       this.alertMessage = msj;
       this.alertShow = true;
+    }
+  },
+  computed: {
+    activeFab() {
+      switch (this.tabs) {
+        case "one":
+          return { color: "success", icon: "share" };
+        case "two":
+          return { color: "red", icon: "edit" };
+        case "three":
+          return { color: "green", icon: "keyboard_arrow_up" };
+        default:
+          return {};
+      }
     }
   },
   created() {
@@ -522,5 +627,10 @@ export default {
 .divisor {
   margin-top: 5px;
   margin-bottom: 5px;
+}
+#lateral .v-btn--example {
+  bottom: 0;
+  position: absolute;
+  margin: 0 0 16px 16px;
 }
 </style>
