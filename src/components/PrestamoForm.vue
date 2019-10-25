@@ -1,16 +1,47 @@
 <template>
   <div>
     <v-form>
-      <v-container>
-        <v-layout row wrap>
-          <v-flex xs12>
+      <v-container fluid>
+        <v-row>
+          <v-col cols="12" xs="12">
             <v-alert :value="true" type="info" dismissible>
               Seleccione los parámetros del préstamo y posteriormente presione el botón "Calcular" para generar la tabla de amortización.
               <br />Una vez verificados los datos presione el botón
               <v-icon color="white">save</v-icon>para generar el préstamo.
             </v-alert>
-          </v-flex>
-          <v-flex xs3>
+          </v-col>
+          <v-col cols="12" xs="12" md="6">
+            <v-menu
+              ref="menu"
+              v-model="menu"
+              :close-on-content-click="false"
+              :nudge-right="40"
+              transition="scale-transition"
+              offset-y
+              full-width
+              min-width="100px"
+            >
+              <template v-slot:activator="{ on }">
+                <v-text-field
+                  v-model="prestamo.inicio"
+                  label="Fecha de inicio"
+                  :error-messages="formErrors"
+                  readonly
+                  v-on="on"
+                  @input="$v.prestamo.inicio.$touch()"
+                  @blur="$v.prestamo.inicio.$touch()"
+                ></v-text-field>
+              </template>
+              <v-date-picker
+                v-model="prestamo.inicio"
+                ref="picker"
+                :max="maxDate"
+                min="2017-01-01"
+                @change="saveDate"
+              ></v-date-picker>
+            </v-menu>
+          </v-col>
+          <v-col cols="12" xs="12" md="6">
             <v-select
               v-model="prestamo.capital"
               :items="capitales"
@@ -21,8 +52,8 @@
               :disabled="estado"
               :error-messages="formErrors"
             ></v-select>
-          </v-flex>
-          <v-flex xs3>
+          </v-col>
+          <v-col cols="12" xs="12" md="6">
             <v-select
               v-model="prestamo.tipo"
               :items="tipos"
@@ -34,8 +65,8 @@
               :error-messages="formErrors"
               @change="setSelectedValues()"
             ></v-select>
-          </v-flex>
-          <v-flex xs3>
+          </v-col>
+          <v-col cols="12" xs="12" md="6">
             <v-select
               v-model="prestamo.tasa"
               :items="tasas"
@@ -46,8 +77,8 @@
               :disabled="estado"
               :error-messages="formErrors"
             ></v-select>
-          </v-flex>
-          <v-flex xs3>
+          </v-col>
+          <v-col cols="12" xs="12" md="6">
             <v-select
               v-model="prestamo.plazo"
               :items="plazos"
@@ -58,8 +89,8 @@
               :disabled="estado"
               :error-messages="formErrors"
             ></v-select>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
       </v-container>
     </v-form>
   </div>
@@ -85,7 +116,8 @@ export default {
       capital: { required },
       tipo: { required },
       tasa: { required },
-      plazo: { required }
+      plazo: { required },
+      inicio: { required }
     }
   },
   data() {
@@ -124,7 +156,8 @@ export default {
       tipos: [
         { id: 1, value: "D", label: "Pago diario" },
         { id: 2, value: "S", label: "Pago semanal" }
-      ]
+      ],
+      menu: false
     };
   },
   computed: {
@@ -134,7 +167,8 @@ export default {
         !this.$v.prestamo.capital.$dirty ||
         !this.$v.prestamo.tasa.$dirty ||
         !this.$v.prestamo.plazo.$dirty ||
-        !this.$v.prestamo.tipo.$dirty
+        !this.$v.prestamo.tipo.$dirty ||
+        !this.$v.prestamo.inicio.$dirty
       )
         return errors;
       !this.$v.prestamo.capital.required &&
@@ -149,14 +183,26 @@ export default {
       !this.$v.prestamo.tipo.required &&
         errors.push("Este campo es obligatorio");
       return errors;
+    },
+    maxDate(){
+      let fecha = null;
+      var today = new Date();
+      var dd = String(today.getDate()).padStart(2, "0");
+      var mm = String(today.getMonth() + 1).padStart(2, "0"); //January is 0!
+      var yyyy = today.getFullYear();
+      fecha = dd + "-" + mm + "-" + yyyy;
+      return fecha;
     }
   },
   methods: {
-    setSelectedValues(){
-      if(this.prestamo.tipo == "D"){
+    saveDate(date) {
+      this.$refs.menu.save(date);
+    },
+    setSelectedValues() {
+      if (this.prestamo.tipo == "D") {
         this.prestamo.plazo = 20;
         this.prestamo.tasa = 0.065;
-      }else if(this.prestamo.tipo == "S"){
+      } else if (this.prestamo.tipo == "S") {
         this.prestamo.plazo = 16;
         this.prestamo.tasa = 0.08;
       }

@@ -358,10 +358,10 @@ export default {
     generarPrestamo() {
       this.loadingDialog = true;
       let formInvalid = this.$refs.prestamoForm.submit();
-      if (formInvalid == false) {        
-        this.prestamo.inicio = this.getDate();
+      if (formInvalid == false) {
+        // this.prestamo.inicio = this.getDate();
+        // console.log(this.prestamo.inicio);
         if (this.prestamo.inicio != null) {
-          
           let pagoCapital = this.prestamo.capital / this.prestamo.plazo;
           let pagoInteres = parseFloat(
             (this.prestamo.capital * this.prestamo.tasa - pagoCapital).toFixed(
@@ -376,7 +376,7 @@ export default {
           );
           this.prestamo.totalPrestamo = parseFloat(
             this.prestamo.intereses + this.prestamo.capital
-          );          
+          );
           this.tablaAmortizacion();
           this.loadingDialog = false;
         }
@@ -414,19 +414,15 @@ export default {
       return this.prestamo.tabla.length == this.prestamo.plazo;
     },
     siguientePago(semanas_dias) {
-      let tiempoSgtePago = 0;
       let nDias = this.prestamo.tipo == "D" ? 1 : 7;
-      // if (this.prestamo.tipo == "S") {
-      //   //          milis * segs * mins * hrs * dias * 7 dias * semanas
-      //   tiempoSgtePago = 1000 * 60 * 60 * 24 * 7 * semanas_dias;
-      // } else if (this.prestamo.tipo == "D") {
-      //   //           milis * segs * mins * hrs * dias
-      //   tiempoSgtePago = 1000 * 60 * 60 * 24 * 1 * semanas_dias;
-      // }
-      tiempoSgtePago = 1000 * 60 * 60 * 24 * nDias * semanas_dias;
-      let hoy = new Date();
+      let tiempoSgtePago = 1000 * 60 * 60 * 24 * nDias * semanas_dias;
+      let hoy = new Date(this.prestamo.inicio);
+      let unDia = 1000 * 60 * 60 * 24;
       let suma = hoy.getTime() + tiempoSgtePago; //getTime devuelve milisegundos de esa fecha
       let proximaFecha = new Date(suma);
+      while (proximaFecha.getDay() == 0 || proximaFecha.getDay() == 6) {
+        proximaFecha = new Date(proximaFecha.getTime() + unDia);
+      }
       var dd = String(proximaFecha.getDate()).padStart(2, "0");
       var mm = String(proximaFecha.getMonth() + 1).padStart(2, "0"); //January is 0!
       var yyyy = proximaFecha.getFullYear();
@@ -450,18 +446,15 @@ export default {
       return dd + "-" + mm + "-" + yyyy;
     },*/
     fechaVencimiento(semanas_dias) {
-      let tiempoSgtePago = 0;
-      if (this.prestamo.tipo == "S") {
-        //          milis * segs * mins * hrs * dias * 7 dias * semanas
-        tiempoSgtePago = 1000 * 60 * 60 * 24 * 7 * semanas_dias;
-      } else if (this.prestamo.tipo == "D") {
-        //           milis * segs * mins * hrs * dias
-        tiempoSgtePago = 1000 * 60 * 60 * 24 * 1;
-      }
-      let hoy = new Date();
+      let nDias = this.prestamo.tipo == "D" ? 1 : 7;
+      let tiempoSgtePago = 1000 * 60 * 60 * 24 * nDias * semanas_dias;
+      let hoy = new Date(this.prestamo.inicio);
       let unDiaEnMilisegundos = 1000 * 60 * 60 * 24;
       let suma = hoy.getTime() - unDiaEnMilisegundos + tiempoSgtePago; //getTime devuelve milisegundos de esa fecha
       let proximaFecha = new Date(suma);
+      while (proximaFecha.getDay() == 0 || proximaFecha.getDay() == 6) {
+        proximaFecha = new Date(proximaFecha.getTime() + unDia);
+      }
       var dd = String(proximaFecha.getDate()).padStart(2, "0");
       var mm = String(proximaFecha.getMonth() + 1).padStart(2, "0"); //January is 0!
       var yyyy = proximaFecha.getFullYear();

@@ -63,12 +63,12 @@
                     </v-chip>
                   </td>
                 </template>
-                <template v-slot:item.amortizacion="{ item }">
+                <template v-slot:item.capital="{ item }">
                   <td class="text-right">
                     <strong>$</strong>
-                    {{item.amortizacion.toFixed(2)}}
+                    {{item.capital.toFixed(2)}}
                   </td>
-                </template>
+                </template>-->
                 <template v-slot:item.interes="{ item }">
                   <td class="text-right">
                     <strong>$</strong>
@@ -131,7 +131,7 @@ export default {
           text: "Capital",
           align: "center",
           sortable: false,
-          value: "amortizacion"
+          value: "capital"
         },
         {
           text: "Interés",
@@ -163,7 +163,7 @@ export default {
       let total = 0;
       for (let i = 0; i < this.selected.length; i++) {
         total = total + this.selected[i].total;
-      }      
+      }
       return total;
     },
     totalInteres() {
@@ -176,7 +176,7 @@ export default {
     totalCapital() {
       let total = 0;
       for (let i = 0; i < this.selected.length; i++) {
-        total = total + this.selected[i].amortizacion;
+        total = total + this.selected[i].capital;
       }
       return total;
     },
@@ -192,21 +192,22 @@ export default {
     // console.log(this.prestamo.key);
     this.db
       .ref("/cargoabono")
-      .orderByChild("idContrato")
+      .orderByChild("idPrestamo")
       .equalTo(this.prestamo.key)
       .on("value", snapshot => {
         let items = snapshot.val();
         let array = [];
         for (let key in items) {
-          if (items[key].estado == "N") {
+          if (items[key].estado == "NP") {
+            // console.log(items[key]);
             array.push({
               key: key,
-              amortizacion: items[key].amortizacion,
+              capital: items[key].capital,
               estado: items[key].estado,
               fechaPago: items[key].fechaPago,
               fechaPagoVencimiento: items[key].fechaLimitePago,
-              idCliente: items[key].idCliente,
-              idContrato: items[key].idContrato,
+              cliente: items[key].cliente,
+              idPrestamo: items[key].idPrestamo,
               idMovimiento: items[key].idMovimiento,
               idVencimiento: items[key].idVencimiento,
               interes: items[key].interes,

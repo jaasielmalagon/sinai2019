@@ -190,10 +190,10 @@ export default {
             .ref("pagos/")
             .push({
               fechaPago: hoy,
-              idCliente: this.selectedItem.cargos[i].idCliente,
-              idPrestamo: this.selectedItem.cargos[i].idContrato,
+              idCliente: this.selectedItem.cargos[i].cliente,
+              idPrestamo: this.selectedItem.cargos[i].idPrestamo,
               idCargo: this.selectedItem.cargos[i].key,
-              capital: this.selectedItem.cargos[i].amortizacion,
+              capital: this.selectedItem.cargos[i].capital,
               interes: this.selectedItem.cargos[i].interes,
               total: this.selectedItem.cargos[i].total
             })
@@ -221,6 +221,7 @@ export default {
       this.alert.show = true;
     },
     selectItem(item) {
+      // console.log(item);
       this.formTitle = "Aplicación de pago";
       this.formDialog = true;
       Object.assign(this.selectedItem, item);
