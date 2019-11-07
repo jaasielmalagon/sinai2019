@@ -400,8 +400,8 @@ export default {
       for (let i = 0; i < this.prestamo.plazo; i++) {
         let pagoN = {
           nPago: i + 1,
-          fecha: this.siguientePago(i + 1),
-          vencimiento: this.fechaVencimiento(i + 1), //CAMBIAR
+          fecha: this.siguientePago(i),
+          vencimiento: this.fechaVencimiento(i), //CAMBIAR
           pagoCapital: parseFloat(pagoCapital.toFixed(2)),
           pagoInteres: parseFloat(pagoInteres.toFixed(2)),
           totalPago: parseFloat(totalPago.toFixed(2)),
@@ -413,15 +413,25 @@ export default {
       }
       return this.prestamo.tabla.length == this.prestamo.plazo;
     },
-    siguientePago(semanas_dias) {
-      let nDias = this.prestamo.tipo == "D" ? 1 : 7;
-      let tiempoSgtePago = 1000 * 60 * 60 * 24 * nDias * semanas_dias;
-      let hoy = new Date(this.prestamo.inicio);
-      let unDia = 1000 * 60 * 60 * 24;
+    siguientePago(posicion) {
+      let tiempoSgtePago = this.prestamo.tipo == "D" ? 86400000 : 604800000;
+      let hoy = null;
+      if (posicion == 0) {
+        let year = this.prestamo.inicio.substring(0, 4);
+        let month = this.prestamo.inicio.substring(5, 7);
+        let day = this.prestamo.inicio.substring(8, 10);
+        hoy = new Date(year, month - 1, day, "13", "00", "00", "00");
+      } else {
+        let year = this.prestamo.tabla[posicion - 1].fecha.substring(6, 10);
+        let month = this.prestamo.tabla[posicion - 1].fecha.substring(3, 5);
+        let day = this.prestamo.tabla[posicion - 1].fecha.substring(0, 2);
+        hoy = new Date(year, month - 1, day, "13", "00", "00", "00");
+      }
+
       let suma = hoy.getTime() + tiempoSgtePago; //getTime devuelve milisegundos de esa fecha
       let proximaFecha = new Date(suma);
       while (proximaFecha.getDay() == 0 || proximaFecha.getDay() == 6) {
-        proximaFecha = new Date(proximaFecha.getTime() + unDia);
+        proximaFecha = new Date(proximaFecha.getTime() + 86400000);
       }
       var dd = String(proximaFecha.getDate()).padStart(2, "0");
       var mm = String(proximaFecha.getMonth() + 1).padStart(2, "0"); //January is 0!
@@ -445,29 +455,38 @@ export default {
       var yyyy = proximaFecha.getFullYear();
       return dd + "-" + mm + "-" + yyyy;
     },*/
-    fechaVencimiento(semanas_dias) {
-      let nDias = this.prestamo.tipo == "D" ? 1 : 7;
-      let tiempoSgtePago = 1000 * 60 * 60 * 24 * nDias * semanas_dias;
-      let hoy = new Date(this.prestamo.inicio);
-      let unDiaEnMilisegundos = 1000 * 60 * 60 * 24;
-      let suma = hoy.getTime() - unDiaEnMilisegundos + tiempoSgtePago; //getTime devuelve milisegundos de esa fecha
+    fechaVencimiento(posicion) {
+      let siguientePago = this.siguientePago(posicion);
+      let day = siguientePago.substring(0, 2);
+      let month = siguientePago.substring(3, 5);
+      let year = siguientePago.substring(6, 10);
+
+      let hoy = new Date(year, month - 1, day, "13", "00", "00", "00");
+      let suma = hoy.getTime() - 86400000; //getTime devuelve milisegundos de esa fecha
       let proximaFecha = new Date(suma);
-      while (proximaFecha.getDay() == 0 || proximaFecha.getDay() == 6) {
-        proximaFecha = new Date(proximaFecha.getTime() + unDia);
-      }
       var dd = String(proximaFecha.getDate()).padStart(2, "0");
       var mm = String(proximaFecha.getMonth() + 1).padStart(2, "0"); //January is 0!
       var yyyy = proximaFecha.getFullYear();
       return dd + "-" + mm + "-" + yyyy;
     },
-    getDate() {
+    /*getDate() {
       let fecha = null;
-      var today = new Date();
+      var today = new Date(this.prestamo.inicio);
       var dd = String(today.getDate()).padStart(2, "0");
       var mm = String(today.getMonth() + 1).padStart(2, "0"); //January is 0!
       var yyyy = today.getFullYear();
       fecha = dd + "-" + mm + "-" + yyyy;
       return fecha;
+    },*/
+    getDate() {
+      let year = this.prestamo.inicio.substring(0, 4);
+      let month = this.prestamo.inicio.substring(5, 7);
+      let day = this.prestamo.inicio.substring(8, 10);
+      var date = new Date(year, month, day);
+      var dd = String(today.getDate()).padStart(2, "0");
+      var mm = String(today.getMonth() + 1).padStart(2, "0"); //January is 0!
+      var yyyy = today.getFullYear();
+      return dd + "-" + mm + "-" + yyyy;
     },
     setSolicitud(item) {
       this.loadingDialog = true;

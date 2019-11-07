@@ -35,8 +35,6 @@
               <v-date-picker
                 v-model="prestamo.inicio"
                 ref="picker"
-                :max="maxDate"
-                min="2017-01-01"
                 @change="saveDate"
               ></v-date-picker>
             </v-menu>

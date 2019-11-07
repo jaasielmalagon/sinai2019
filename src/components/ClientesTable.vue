@@ -33,16 +33,15 @@
           </v-layout>
         </v-container>
       </v-card-title>
-      <v-card-text v-resize="onResize">
-        <v-data-table          
+      <v-card-text>
+        <v-data-table
           :headers="headers"
           :items="filteredItems"
           :search="search"
           :loading="loading"
           loading-text="Cargando... espere, por favor."
           class="elevation-1"
-          :hide-default-header="isMobile"
-          v-if="!isMobile"
+          dense
         >
           <!-- <v-progress-linear v-slot:progress color="blue" indeterminate></v-progress-linear> -->
           <!-- <template slot="items" slot-scope="props">
@@ -70,11 +69,23 @@
             </tr>
           </template>-->
           <template v-slot:item.opc="{ item }" v-if="options == 1">
-            <v-icon @click="$emit('editClient', item)" small class="mr-2" dark color="light-blue accent-3">edit</v-icon>
+            <v-icon
+              @click="$emit('editClient', item)"
+              small
+              class="mr-2"
+              dark
+              color="light-blue accent-3"
+            >edit</v-icon>
             <v-icon @click="deleteItem(item)" small dark color="red lighten-1">delete</v-icon>
           </template>
           <template v-slot:item.opc="{ item }" v-else>
-            <v-icon @click="$emit('selectClient', item)" small class="mr-2" dark color="light-blue accent-3">check</v-icon>
+            <v-icon
+              @click="$emit('selectClient', item)"
+              small
+              class="mr-2"
+              dark
+              color="light-blue accent-3"
+            >check</v-icon>
           </template>
           <template v-slot:no-results>
             <v-alert :value="true" color="error" icon="warning">
@@ -83,73 +94,6 @@
             </v-alert>
           </template>
         </v-data-table>
-
-        <v-container fluid grid-list-md v-else>
-          <v-data-iterator
-            :items="filteredItems"
-            :search="search"
-            :loading="loading"
-            content-tag="v-layout"
-            row
-            wrap
-          >
-            <template v-slot:item="props">
-              <v-flex xs6>
-                <v-card>
-                  <v-card-title>
-                    <h4>{{ props.item.nombre }} {{ props.item.apaterno }} {{ props.item.amaterno }}</h4>
-                  </v-card-title>
-                  <v-divider></v-divider>
-                  <v-list dense>
-                    <v-list-tile>
-                      <v-list-tile-content>CURP:</v-list-tile-content>
-                      <v-list-tile-content class="align-end">{{ props.item.curp }}</v-list-tile-content>
-                    </v-list-tile>
-                    <v-list-tile>
-                      <v-list-tile-content>OCR:</v-list-tile-content>
-                      <v-list-tile-content class="align-end">{{ props.item.ocr }}</v-list-tile-content>
-                    </v-list-tile>
-                    <v-list-tile>
-                      <v-list-tile-content>Teléfono:</v-list-tile-content>
-                      <v-list-tile-content class="align-end">{{ props.item.telefono }}</v-list-tile-content>
-                    </v-list-tile>
-                    <v-list-tile>
-                      <v-list-tile-content>Dirección:</v-list-tile-content>
-                      <v-list-tile-content class="align-end">{{ props.item.direccion }}</v-list-tile-content>
-                    </v-list-tile>
-                    <v-list-tile v-if="options == 1">
-                      <v-list-tile-content>
-                        <v-btn
-                          @click="$emit('editClient', props.item)"
-                          icon
-                          small
-                          color="transparent"
-                        >
-                          <v-icon dark color="light-blue accent-3">edit</v-icon>
-                        </v-btn>
-                        <v-btn @click="deleteItem(props.item)" icon small color="transparent">
-                          <v-icon dark color="red lighten-1">delete</v-icon>
-                        </v-btn>
-                      </v-list-tile-content>
-                    </v-list-tile>
-                    <v-list-tile v-if="options == 2">
-                      <v-list-tile-content>
-                        <v-btn
-                          @click="$emit('selectClient', props.item)"
-                          icon
-                          small
-                          color="transparent"
-                        >
-                          <v-icon dark color="light-blue accent-3">check</v-icon>
-                        </v-btn>
-                      </v-list-tile-content>
-                    </v-list-tile>
-                  </v-list>
-                </v-card>
-              </v-flex>
-            </template>
-          </v-data-iterator>
-        </v-container>
       </v-card-text>
       <loading-dialog :activator="loadingDialog"></loading-dialog>
 
@@ -255,10 +199,6 @@ export default {
     // this.cargarDatos();
   },
   methods: {
-    onResize() {
-      if (window.innerWidth < 769) this.isMobile = true;
-      else this.isMobile = false;
-    },
     deleteItem(item) {
       // this.editedIndex = this.teams.indexOf(item);
       this.selectedItem = item;

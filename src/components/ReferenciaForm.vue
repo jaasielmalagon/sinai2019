@@ -108,7 +108,7 @@
             v-model="ocr"
             :error-messages="ocrErrors"
             :counter="13"
-            label="Clave de elector"
+            label="OCR"
             required
             @input="$v.ocr.$touch()"
             @blur="$v.ocr.$touch()"
