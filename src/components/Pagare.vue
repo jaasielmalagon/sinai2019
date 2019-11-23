@@ -127,7 +127,7 @@
               </v-card-text>
             </v-card>
           </v-flex>
-          <v-flex xs5 offset-xs2>
+          <v-flex xs5 offset-xs2 v-if="aval.nombre != 'NO DISPONIBLE'">
             <v-card class="cuadro-redondeado" elevation="0" :color="morado">
               <v-card-title class="ml-1 title font-weight-regular">DATOS DEL AVAL</v-card-title>
               <v-card-text class="body-2 text-xs-left">

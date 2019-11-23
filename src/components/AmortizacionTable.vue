@@ -98,11 +98,11 @@ export default {
           align: "center",
           value: "nPago"
         },
-        {
-          text: "Fecha vencimiento",
-          align: "center",
-          value: "vencimiento"
-        },
+        // {
+        //   text: "Fecha vencimiento",
+        //   align: "center",
+        //   value: "vencimiento"
+        // },
         {
           text: "Fecha de pago",
           align: "center",

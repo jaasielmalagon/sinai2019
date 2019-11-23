@@ -29,12 +29,12 @@
             <v-tabs v-model="tabs" background-color="#0051A0" centered dark icons-and-text>
               <v-tabs-slider></v-tabs-slider>
 
-              <v-tab href="#one">
+              <v-tab href="#one" @click="changeTipoCliente('D')">
                 Diario
                 <v-icon>payment</v-icon>
               </v-tab>
 
-              <v-tab href="#two">
+              <v-tab href="#two" @click="changeTipoCliente('S')">
                 Semanal
                 <v-icon>remove_red_eye</v-icon>
               </v-tab>
@@ -64,16 +64,14 @@
               <v-tab-item value="two">
                 <v-card flat class="grey lighten-3 text-center">
                   <v-card-text style="overflow-y: scroll; max-height:800px; margin-top: 8px;">
-                    <v-flex xs10 d-flex>
-                      <v-alert
-                        :value="alertShow"
-                        dismissible
-                        dense
-                        outlined
-                        :type="alertStyle"
-                        transition="scale-transition"
-                      >{{alertMessage}}</v-alert>
-                    </v-flex>
+                    <v-alert
+                      :value="alertShow"
+                      dismissible
+                      dense
+                      outlined
+                      :type="alertStyle"
+                      transition="scale-transition"
+                    >{{alertMessage}}</v-alert>
                     <v-divider class="divisor"></v-divider>
 
                     <v-flex xs12>
@@ -289,10 +287,16 @@ export default {
       },
       tabs: null,
       fab: false,
-      hidden: false
+      hidden: false,
+      clientFound: false,
+      tipoCliente: "D"
     };
   },
   methods: {
+    changeTipoCliente(tipo) {
+      this.tipoCliente = tipo;
+      console.log(this.tipoCliente);
+    },
     editItem(item) {
       this.loadingDialog = true;
       this.cancel();
@@ -314,51 +318,65 @@ export default {
       for (let key in snap) {
         solicitud = snap[key];
       }
-
-      this.db //A CONTINUACIÓN CARGAMOS NUEVAMENTE LOS DATOS DEL CLIENTE DESDE LA BDD
-        .ref("/personas")
-        .orderByKey()
-        .equalTo(solicitud.solicitante)
-        .once("value", snapshot => {
-          let snap = snapshot.val();
-          for (let key in snap) {
-            Object.assign(this.solicitante, snap[key]);
-            this.solicitante.key = key;
-          }
-        });
-      this.db //A CONTINUACIÓN CARGAMOS NUEVAMENTE LOS DATOS DEL CONYUGE DESDE LA BDD
-        .ref("/personas")
-        .orderByKey()
-        .equalTo(solicitud.conyuge)
-        .once("value", snapshot => {
-          let snap = snapshot.val();
-          for (let key in snap) {
-            Object.assign(this.conyuge, snap[key]);
-            this.conyuge.key = key;
-          }
-        });
-      this.db //A CONTINUACIÓN CARGAMOS NUEVAMENTE LOS DATOS DE LA REFERENCIA DESDE LA BDD
-        .ref("/personas")
-        .orderByKey()
-        .equalTo(solicitud.referencia)
-        .once("value", snapshot => {
-          let snap = snapshot.val();
-          for (let key in snap) {
-            Object.assign(this.referencia, snap[key]);
-            this.referencia.key = key;
-          }
-        });
-      this.db //A CONTINUACIÓN CARGAMOS NUEVAMENTE LOS DATOS DEL AVAL DESDE LA BDD
-        .ref("/personas")
-        .orderByKey()
-        .equalTo(solicitud.aval)
-        .once("value", snapshot => {
-          let snap = snapshot.val();
-          for (let key in snap) {
-            Object.assign(this.aval, snap[key]);
-            this.aval.key = key;
-          }
-        });
+      if (solicitud.solicitante != undefined && solicitud.solicitante != "") {
+        this.db //A CONTINUACIÓN CARGAMOS NUEVAMENTE LOS DATOS DEL CLIENTE DESDE LA BDD
+          .ref("/personas")
+          .orderByKey()
+          .equalTo(solicitud.solicitante)
+          .once("value", snapshot => {
+            let snap = snapshot.val();
+            console.log(snap);
+            for (let key in snap) {
+              if (snap[key].tipoPrestamo == "S") {
+                Object.assign(this.solicitante, snap[key]);
+              } else if (snap[key].tipoPrestamo == "D") {
+                Object.assign(this.clientediario, snap[key]);
+              }
+              this.solicitante.key = key;
+            }
+          });
+      }
+      if (this.solicitante.tipoPrestamo == "S") {
+        if (solicitud.conyuge != undefined && solicitud.conyuge != "") {
+          this.db //A CONTINUACIÓN CARGAMOS NUEVAMENTE LOS DATOS DEL CONYUGE DESDE LA BDD
+            .ref("/personas")
+            .orderByKey()
+            .equalTo(solicitud.conyuge)
+            .once("value", snapshot => {
+              let snap = snapshot.val();
+              for (let key in snap) {
+                Object.assign(this.conyuge, snap[key]);
+                this.conyuge.key = key;
+              }
+            });
+        }
+        if (solicitud.referencia != undefined && solicitud.referencia != "") {
+          this.db //A CONTINUACIÓN CARGAMOS NUEVAMENTE LOS DATOS DE LA REFERENCIA DESDE LA BDD
+            .ref("/personas")
+            .orderByKey()
+            .equalTo(solicitud.referencia)
+            .once("value", snapshot => {
+              let snap = snapshot.val();
+              for (let key in snap) {
+                Object.assign(this.referencia, snap[key]);
+                this.referencia.key = key;
+              }
+            });
+        }
+        if (solicitud.aval != undefined && solicitud.aval != "") {
+          this.db //A CONTINUACIÓN CARGAMOS NUEVAMENTE LOS DATOS DEL AVAL DESDE LA BDD
+            .ref("/personas")
+            .orderByKey()
+            .equalTo(solicitud.aval)
+            .once("value", snapshot => {
+              let snap = snapshot.val();
+              for (let key in snap) {
+                Object.assign(this.aval, snap[key]);
+                this.aval.key = key;
+              }
+            });
+        }
+      }
     },
     add() {
       this.cancel();
@@ -382,78 +400,88 @@ export default {
     },
     saveData() {
       this.loadingDialog = true;
+      console.log(
+        this.tipoCliente,
+        this.$refs.form1.submit(),
+        this.$refs.form4.submit()
+      );
       if (
-        typeof this.$refs.form0 !== "undefined" &&
+        //Para clientes de tipo diario
+        this.tipoCliente == "D" &&
         this.$refs.form0.submit() == true
       ) {
         this.loadingDialog = false;
         this.alert(
-          "Existen campos vacíos en la solicitud. Para continuar por favor rellene todos los campos.",
+          this.tipoCliente +
+            " Existen campos vacíos en la solicitud, por favor rellene todos los campos.",
           "error"
         );
         this.closeAlert();
       } else if (
-        typeof this.$refs.form0 !== "undefined" &&
+        this.tipoCliente == "D" &&
         this.$refs.form0.submit() == false
       ) {
-        //INSERTAR EN LA BDD
-        // alert("Insertando en la BDD");
-        let clienteKey = this.db
-          .ref("personas/")
-          .push(this.normalizedObject(this.clientediario, 1, "D")).key;
-
-        if (clienteKey != "") {
-          this.db
-            .ref("solicitudes/")
-            .push({
-              solicitante: clienteKey
-            })
-            .then(() => {
-              this.loadingDialog = false;
-              this.alert("Cliente guardado exitosamente", "success");
-              this.closeAlert();
-              Object.assign(this.clientediario, this.defaultCliente);
-            });
-        }
+        //GUARDAR NUEVO CLIENTE TIPO DIARIO EN LA BDD
+        let cliente = this.normalizedObject(this.clientediario, 1, "D");
+        let existe = this.searchClient(cliente);
+        setTimeout(() => {
+          if (this.clientFound == false) {
+            // console.log("Insertando en la BDD");
+            let clienteKey = this.db.ref("personas/").push(cliente).key;
+            if (clienteKey != "") {
+              this.db
+                .ref("solicitudes/")
+                .push({
+                  solicitante: clienteKey
+                })
+                .then(() => {
+                  this.loadingDialog = false;
+                  this.alert("Cliente guardado exitosamente", "success");
+                  this.closeAlert();
+                  Object.assign(this.clientediario, this.defaultCliente);
+                });
+            }
+          } else {
+            this.loadingDialog = false;
+            this.alert(
+              "Los datos ingresados ya se encuentran registrados.",
+              "error"
+            );
+          }
+        }, 1800);
       } else if (
-        ((typeof this.$refs.form1 == "undefined" ||
-          typeof this.$refs.form3 == "undefined" ||
-          typeof this.$refs.form4 == "undefined") &&
-          (this.$refs.form1.submit() ||
-            this.$refs.form3.submit() ||
-            this.$refs.form4.submit())) ||
-        (this.married && this.$refs.form2.submit())
+        //Para clientes de tipo semanal
+        this.tipoCliente == "S" &&
+        this.$refs.form1.submit() == true &&
+        this.$refs.form4.submit() == true
       ) {
         this.loadingDialog = false;
         this.alert(
-          "Existen campos vacíos en la solicitud. Para continuar por favor rellene todos los campos.",
+          this.tipoCliente +
+            " Existen campos vacíos en la solicitud. Para continuar por favor rellene todos los campos.",
           "error"
         );
         this.closeAlert();
       } else if (
-        ((typeof this.$refs.form1 !== "undefined" ||
-          typeof this.$refs.form3 !== "undefined" ||
-          typeof this.$refs.form4 !== "undefined") &&
-          (this.$refs.form1.submit() == false ||
-            this.$refs.form3.submit() == false ||
-            this.$refs.form4.submit() == false)) ||
-        (this.married && this.$refs.form2.submit())
+        //INSERTAR EL CLIENTE SEMANAL
+        this.tipoCliente == "S" &&
+        this.$refs.form1.submit() == false &&
+        this.$refs.form4.submit() == false
       ) {
+        console.log(this.solicitante, this.aval);
         if (
+          //ACTUALIZARLO SI YA EXISTE
           this.solicitante.curp.length >= 16 &&
           this.solicitante.key != "" &&
           this.aval.curp.length >= 16 &&
-          this.aval.key != "" &&
-          this.referencia.curp.length >= 16 &&
-          this.referencia.key != "" &&
-          this.conyuge.key != ""
+          this.aval.key != ""
         ) {
           let flag = true;
           if (flag) {
             //ACTUALIZA SOLICITANTE
             this.db.ref("/personas/" + this.solicitante.key).transaction(
               () => {
-                return this.normalizedObject(this.solicitante, 1);
+                return this.normalizedObject(this.solicitante, 1, "S");
               },
               (error, commited) => {
                 if (error) {
@@ -465,11 +493,15 @@ export default {
               }
             );
           }
-          if (flag) {
+          if (
+            flag &&
+            typeof this.conyuge.key != undefined &&
+            typeof this.conyuge.key != ""
+          ) {
             //ACTUALIZA CONYUGE
             this.db.ref("/personas/" + this.conyuge.key).transaction(
               () => {
-                return this.normalizedObject(this.conyuge, 2);
+                return this.normalizedObject(this.conyuge, 2, "S");
               },
               (error, commited) => {
                 if (error) {
@@ -481,11 +513,15 @@ export default {
               }
             );
           }
-          if (flag) {
+          if (
+            flag &&
+            typeof this.referencia.key != undefined &&
+            typeof this.conyuge.key != ""
+          ) {
             //ACTUALIZA REFERENCIA
             this.db.ref("/personas/" + this.referencia.key).transaction(
               () => {
-                return this.normalizedObject(this.referencia, 3);
+                return this.normalizedObject(this.referencia, 3, "S");
               },
               (error, commited) => {
                 if (error) {
@@ -501,7 +537,7 @@ export default {
             //ACTUALIZA AVAL
             this.db.ref("/personas/" + this.aval.key).transaction(
               () => {
-                return this.normalizedObject(this.aval, 4);
+                return this.normalizedObject(this.aval, 4, "S");
               },
               (error, commited) => {
                 if (error) {
@@ -522,45 +558,132 @@ export default {
           }
           this.closeAlert();
         } else if (
+          //INSERTAR SI NO EXISTE EL CLIENTE
           this.solicitante.curp.length >= 16 &&
           this.solicitante.key == "" &&
-          this.referencia.curp.length >= 16 &&
           this.aval.curp.length >= 16
         ) {
-          let solicitanteKey = this.db
-            .ref("personas/")
-            .push(this.normalizedObject(this.solicitante, 1, "S")).key;
-          let conyugeKey = this.db
-            .ref("personas/")
-            .push(this.normalizedObject(this.conyuge, 2, "S")).key;
-          let referenciaKey = this.db
-            .ref("personas/")
-            .push(this.normalizedObject(this.referencia, 3, "S")).key;
-          let avalKey = this.db
-            .ref("personas/")
-            .push(this.normalizedObject(this.aval, 4, "S")).key;
-          if (
-            solicitanteKey != "" &&
-            // conyugeKey != "" &&
-            referenciaKey != "" &&
-            avalKey != ""
-          ) {
-            this.db
-              .ref("solicitudes/")
-              .push({
-                solicitante: solicitanteKey,
-                conyuge: conyugeKey,
-                referencia: referenciaKey,
-                aval: avalKey
-              })
-              .then(() => {
-                this.loadingDialog = false;
-                this.alert("Solicitud guardada exitosamente", "success");
-                this.closeAlert();
-              });
-          }
+          let solicitante = this.normalizedObject(this.solicitante, 1, "S");
+          let existeSolicitante = this.searchClient(solicitante);
+          let conyuge = this.normalizedObject(this.conyuge, 2, "S");
+          let existeConyuge = this.searchClient(conyuge);
+          let referencia = this.normalizedObject(this.referencia, 3, "S");
+          let existeReferencia = this.searchClient(referencia);
+          let aval = this.normalizedObject(this.aval, 4, "S");
+          let existeAval = this.searchClient(aval);
+          console.log(this.existeSolicitante,this.existeConyuge,this.existeReferencia,this.existeAval);
+          setTimeout(() => {
+            if (
+              this.existeSolicitante != true &&
+              this.existeConyuge != true &&
+              this.existeReferencia != true &&
+              this.existeAval != true
+            ) {
+              let solicitanteKey = this.db.ref("personas/").push(solicitante)
+                .key;
+              let conyugeKey = this.db.ref("personas/").push(conyuge).key;
+              let referenciaKey = this.db.ref("personas/").push(referencia).key;
+              let avalKey = this.db.ref("personas/").push(aval).key;
+              if (
+                solicitanteKey != "" &&
+                // conyugeKey != "" &&
+                // referenciaKey != "" &&
+                avalKey != ""
+              ) {
+                this.db
+                  .ref("solicitudes/")
+                  .push({
+                    solicitante: solicitanteKey,
+                    conyuge: conyugeKey,
+                    referencia: referenciaKey,
+                    aval: avalKey
+                  })
+                  .then(() => {
+                    this.loadingDialog = false;
+                    this.alert("Solicitud guardada exitosamente", "success");
+                    this.closeAlert();
+                  });
+              }
+            } else {
+              let quien = "";
+              quien +=
+                existeSolicitante == true
+                  ? solicitante.nombre +
+                    " " +
+                    solicitante.apaterno +
+                    " " +
+                    solicitante.amaterno +
+                    ", "
+                  : "";
+              quien +=
+                existeConyuge == true
+                  ? conyuge.nombre +
+                    " " +
+                    conyuge.apaterno +
+                    " " +
+                    conyuge.amaterno +
+                    ", "
+                  : "";
+              quien +=
+                existeReferencia == true
+                  ? referencia.nombre +
+                    " " +
+                    referencia.apaterno +
+                    " " +
+                    referencia.amaterno +
+                    ", "
+                  : "";
+              quien +=
+                existeAval == true
+                  ? aval.nombre +
+                    " " +
+                    aval.apaterno +
+                    " " +
+                    aval.amaterno +
+                    ", "
+                  : "";
+              this.loadingDialog = false;
+              this.alert(
+                "Los datos de " + quien + "ya se encuentran registrados.",
+                "error"
+              );
+            }
+          }, 2500);
+        } else {
+          this.loadingDialog = false;
+          this.alert("Los datos no pudieron ser guardados debido a un error desconocido.", "error");
+          this.closeAlert();
         }
       }
+    },
+    searchClient(cliente) {
+      this.db
+        .ref("/personas")
+        .orderByChild("curp")
+        .equalTo(cliente.curp)
+        .once("value", snapshot => {
+          if (snapshot.val() != null) {
+            this.clientFound = true;
+          }
+        });
+      this.db
+        .ref("/personas")
+        .orderByChild("ocr")
+        .equalTo(cliente.ocr)
+        .once("value", snapshot => {
+          if (snapshot.val() != null) {
+            this.clientFound = true;
+          }
+        });
+      this.db
+        .ref("/personas")
+        .orderByChild("telefono")
+        .equalTo(cliente.telefono)
+        .once("value", snapshot => {
+          if (snapshot.val() != null) {
+            this.clientFound = true;
+          }
+        });
     },
     normalizedObject(object, tipo, tipoPrestamo) {
       return {

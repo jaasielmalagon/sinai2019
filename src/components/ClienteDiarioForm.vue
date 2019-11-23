@@ -47,7 +47,7 @@
                       v-model="cliente.bornDate"
                       ref="picker"
                       :max="maxDate"
-                      min="1950-01-01"
+                      :min="minDate"
                       @change="saveDate"
                       @input="generateCurp"
                     ></v-date-picker>
@@ -615,6 +615,13 @@ export default {
         new Date().toISOString().substr(5, 2) +
         "-" +
         new Date().toISOString().substr(8, 2),
+      minDate:
+        new Date().toISOString().substr(0, 4) -
+        60 +
+        "-" +
+        new Date().toISOString().substr(5, 2) +
+        "-" +
+        new Date().toISOString().substr(8, 2),
       menu: false,
       items: [
         { id: "MEX-AGS", value: "AS", label: "Aguascalientes (AGS)" },
@@ -904,14 +911,14 @@ export default {
       this.$refs.menu.save(date);
     },
     uppercasedName() {
-      this.cliente.nombre = this.cliente.nombre.toUpperCase();
+      this.cliente.nombre = this.cliente.nombre.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
     },
     uppercasedLastname() {
-      this.cliente.apaterno = this.cliente.apaterno.toUpperCase();
-      this.cliente.amaterno = this.cliente.amaterno.toUpperCase();
+      this.cliente.apaterno = this.cliente.apaterno.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+      this.cliente.amaterno = this.cliente.amaterno.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
     },
     uppercasedAddress() {
-      this.cliente.direccion = this.cliente.direccion.toUpperCase();
+      this.cliente.direccion = this.cliente.direccion.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
     },
     uppercasedOcupacion() {
       this.cliente.ocupacion = this.cliente.ocupacion.toUpperCase();
