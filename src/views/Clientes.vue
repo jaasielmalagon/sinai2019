@@ -1,7 +1,7 @@
 <template>
-  <v-container>
-    <v-row>
-      <v-col xs12>
+  <v-container fluid>
+    <v-row no-gutters>
+      <v-col cols="12" xs="12">
         <div class="text-center">
           <v-btn @click="add" fab dark small color="light-green lighten-2">
             <v-icon dark>add</v-icon>
@@ -12,33 +12,50 @@
         </div>
       </v-col>
     </v-row>
-    <v-row>
-      <v-col xs12>
+    <v-row no-gutters>
+      <v-col cols="12" xs="12">
         <clientes-table v-on:editClient="editItem($event)" :options="1"></clientes-table>
       </v-col>
     </v-row>
     <v-row justify="center">
       <v-dialog v-model="showForm" fullscreen transition="dialog-bottom-transition">
         <v-card id="lateral">
-          <v-toolbar dense color="#0051A0">
-            <template v-slot:extension>
+          <v-toolbar dense color="#0051A0" dark>
+            <v-btn icon @click="resetValues">
+              <v-icon>close</v-icon>
+            </v-btn>
+            <v-toolbar-title>Registrar cliente</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn icon @click="saveData">
+              <v-icon>save</v-icon>
+            </v-btn>
+            <!-- <template v-slot:extension>
               <v-btn @click="saveData" fab color="green" dark small bottom right absolute>
                 <v-icon>save</v-icon>
               </v-btn>
+            </template>-->
+            <template v-slot:extension>
+              <v-tabs
+                v-model="tabs"
+                background-color="#0051A0"
+                fixed-tabs
+                centered
+                dark
+                icons-and-text
+              >
+                <v-tabs-slider></v-tabs-slider>
+
+                <v-tab href="#one" @click="changeTipoCliente('D')">
+                  Diario
+                  <v-icon>payment</v-icon>
+                </v-tab>
+
+                <v-tab href="#two" active-class @click="changeTipoCliente('S')">
+                  Semanal
+                  <v-icon>remove_red_eye</v-icon>
+                </v-tab>
+              </v-tabs>
             </template>
-            <v-tabs v-model="tabs" background-color="#0051A0" centered dark icons-and-text>
-              <v-tabs-slider></v-tabs-slider>
-
-              <v-tab href="#one" @click="changeTipoCliente('D')">
-                Diario
-                <v-icon>payment</v-icon>
-              </v-tab>
-
-              <v-tab href="#two" @click="changeTipoCliente('S')">
-                Semanal
-                <v-icon>remove_red_eye</v-icon>
-              </v-tab>
-            </v-tabs>
           </v-toolbar>
           <v-card-text flat class="grey lighten-3 text-center">
             <v-tabs-items v-model="tabs">
@@ -129,7 +146,7 @@
                           ref="form4"
                           :initial-client="aval"
                           :comisionistas="comisionistas"
-                          :es-referencia="true"
+                          :es-aval="true"
                         ></cliente-form>
                       </v-card>
                     </v-flex>
@@ -289,13 +306,22 @@ export default {
       fab: false,
       hidden: false,
       clientFound: false,
-      tipoCliente: "D"
+      tipoCliente: "D",
+      whoIsFound: []
     };
   },
   methods: {
+    resetValues() {
+      Object.assign(this.solicitante, this.defaultCliente);
+      Object.assign(this.conyuge, this.defaultCliente);
+      Object.assign(this.referencia, this.defaultCliente);
+      Object.assign(this.aval, this.defaultCliente);
+      Object.assign(this.clientediario, this.defaultCliente);
+      this.showForm = false;
+    },
     changeTipoCliente(tipo) {
       this.tipoCliente = tipo;
-      console.log(this.tipoCliente);
+      // console.log(this.tipoCliente);
     },
     editItem(item) {
       this.loadingDialog = true;
@@ -325,57 +351,63 @@ export default {
           .equalTo(solicitud.solicitante)
           .once("value", snapshot => {
             let snap = snapshot.val();
-            console.log(snap);
             for (let key in snap) {
               if (snap[key].tipoPrestamo == "S") {
                 Object.assign(this.solicitante, snap[key]);
+                console.log(solicitud, this.solicitante.tipoPrestamo);
+                this.tipoCliente = this.solicitante.tipoPrestamo;
+                if (solicitud.conyuge != undefined && solicitud.conyuge != "") {
+                  this.db //A CONTINUACIÓN CARGAMOS NUEVAMENTE LOS DATOS DEL CONYUGE DESDE LA BDD
+                    .ref("/personas")
+                    .orderByKey()
+                    .equalTo(solicitud.conyuge)
+                    .once("value", snapshot => {
+                      let snap = snapshot.val();
+                      for (let key in snap) {
+                        Object.assign(this.conyuge, snap[key]);
+                        this.conyuge.key = key;
+                      }
+                    });
+                }
+                if (
+                  solicitud.referencia != undefined &&
+                  solicitud.referencia != ""
+                ) {
+                  this.db //A CONTINUACIÓN CARGAMOS NUEVAMENTE LOS DATOS DE LA REFERENCIA DESDE LA BDD
+                    .ref("/personas")
+                    .orderByKey()
+                    .equalTo(solicitud.referencia)
+                    .once("value", snapshot => {
+                      let snap = snapshot.val();
+                      console.log(snap);
+                      for (let key in snap) {
+                        Object.assign(this.referencia, snap[key]);
+                        this.referencia.key = key;
+                      }
+                    });
+                }
+                if (solicitud.aval != undefined && solicitud.aval != "") {
+                  this.db //A CONTINUACIÓN CARGAMOS NUEVAMENTE LOS DATOS DEL AVAL DESDE LA BDD
+                    .ref("/personas")
+                    .orderByKey()
+                    .equalTo(solicitud.aval)
+                    .once("value", snapshot => {
+                      let snap = snapshot.val();
+                      for (let key in snap) {
+                        Object.assign(this.aval, snap[key]);
+                        this.aval.key = key;
+                      }
+                    });
+                }
+                this.tabs = "two";
               } else if (snap[key].tipoPrestamo == "D") {
                 Object.assign(this.clientediario, snap[key]);
+                this.tabs = "one";
+                this.tipoCliente = this.clientediario.tipoPrestamo;
               }
               this.solicitante.key = key;
             }
           });
-      }
-      if (this.solicitante.tipoPrestamo == "S") {
-        if (solicitud.conyuge != undefined && solicitud.conyuge != "") {
-          this.db //A CONTINUACIÓN CARGAMOS NUEVAMENTE LOS DATOS DEL CONYUGE DESDE LA BDD
-            .ref("/personas")
-            .orderByKey()
-            .equalTo(solicitud.conyuge)
-            .once("value", snapshot => {
-              let snap = snapshot.val();
-              for (let key in snap) {
-                Object.assign(this.conyuge, snap[key]);
-                this.conyuge.key = key;
-              }
-            });
-        }
-        if (solicitud.referencia != undefined && solicitud.referencia != "") {
-          this.db //A CONTINUACIÓN CARGAMOS NUEVAMENTE LOS DATOS DE LA REFERENCIA DESDE LA BDD
-            .ref("/personas")
-            .orderByKey()
-            .equalTo(solicitud.referencia)
-            .once("value", snapshot => {
-              let snap = snapshot.val();
-              for (let key in snap) {
-                Object.assign(this.referencia, snap[key]);
-                this.referencia.key = key;
-              }
-            });
-        }
-        if (solicitud.aval != undefined && solicitud.aval != "") {
-          this.db //A CONTINUACIÓN CARGAMOS NUEVAMENTE LOS DATOS DEL AVAL DESDE LA BDD
-            .ref("/personas")
-            .orderByKey()
-            .equalTo(solicitud.aval)
-            .once("value", snapshot => {
-              let snap = snapshot.val();
-              for (let key in snap) {
-                Object.assign(this.aval, snap[key]);
-                this.aval.key = key;
-              }
-            });
-        }
       }
     },
     add() {
@@ -400,259 +432,269 @@ export default {
     },
     saveData() {
       this.loadingDialog = true;
-      console.log(
-        this.tipoCliente,
-        this.$refs.form1.submit(),
-        this.$refs.form4.submit()
-      );
-      if (
+      this.whoIsFound = [];
+      this.clientFound = false;
+      console.log(this.tabs);
+      if (this.tabs == "one") {
         //Para clientes de tipo diario
-        this.tipoCliente == "D" &&
-        this.$refs.form0.submit() == true
-      ) {
-        this.loadingDialog = false;
-        this.alert(
-          this.tipoCliente +
-            " Existen campos vacíos en la solicitud, por favor rellene todos los campos.",
-          "error"
-        );
-        this.closeAlert();
-      } else if (
-        this.tipoCliente == "D" &&
-        this.$refs.form0.submit() == false
-      ) {
-        //GUARDAR NUEVO CLIENTE TIPO DIARIO EN LA BDD
-        let cliente = this.normalizedObject(this.clientediario, 1, "D");
-        let existe = this.searchClient(cliente);
-        setTimeout(() => {
-          if (this.clientFound == false) {
-            // console.log("Insertando en la BDD");
-            let clienteKey = this.db.ref("personas/").push(cliente).key;
-            if (clienteKey != "") {
-              this.db
-                .ref("solicitudes/")
-                .push({
-                  solicitante: clienteKey
-                })
-                .then(() => {
-                  this.loadingDialog = false;
-                  this.alert("Cliente guardado exitosamente", "success");
-                  this.closeAlert();
-                  Object.assign(this.clientediario, this.defaultCliente);
-                });
-            }
-          } else {
-            this.loadingDialog = false;
-            this.alert(
-              "Los datos ingresados ya se encuentran registrados.",
-              "error"
-            );
-          }
-        }, 1800);
-      } else if (
-        //Para clientes de tipo semanal
-        this.tipoCliente == "S" &&
-        this.$refs.form1.submit() == true &&
-        this.$refs.form4.submit() == true
-      ) {
-        this.loadingDialog = false;
-        this.alert(
-          this.tipoCliente +
-            " Existen campos vacíos en la solicitud. Para continuar por favor rellene todos los campos.",
-          "error"
-        );
-        this.closeAlert();
-      } else if (
-        //INSERTAR EL CLIENTE SEMANAL
-        this.tipoCliente == "S" &&
-        this.$refs.form1.submit() == false &&
-        this.$refs.form4.submit() == false
-      ) {
-        console.log(this.solicitante, this.aval);
-        if (
-          //ACTUALIZARLO SI YA EXISTE
-          this.solicitante.curp.length >= 16 &&
-          this.solicitante.key != "" &&
-          this.aval.curp.length >= 16 &&
-          this.aval.key != ""
+        if (this.tipoCliente == "D" && this.$refs.form0.submit() == true) {
+          this.loadingDialog = false;
+          alertify.error(
+            "Existen campos vacíos en la solicitud, por favor rellene todos los campos."
+          );
+        } else if (
+          this.tipoCliente == "D" &&
+          this.$refs.form0.submit() == false
         ) {
-          let flag = true;
-          if (flag) {
-            //ACTUALIZA SOLICITANTE
+          //GUARDAR CLIENTE TIPO DIARIO EN LA BDD
+          console.log(this.solicitante);
+          if (
+            this.solicitante.key != null &&
+            this.solicitante.key != undefined
+          ) {
+            //ACTUALIZAR CLIENTE
             this.db.ref("/personas/" + this.solicitante.key).transaction(
               () => {
-                return this.normalizedObject(this.solicitante, 1, "S");
+                return this.normalizedObject(this.clientediario, 1, "D");
               },
               (error, commited) => {
+                console.log(error, commited);
                 if (error) {
-                  flag = false;
-                  // console.error(error);
-                } else if (!commited) {
-                  flag = false;
+                  //ARROJA EL MENSAJE FINAL DEPENDIENDO EL ESTADO DE LA TRANSACCIÓN
+                  this.loadingDialog = false;
+                  alertify.error("Ocurrió un error. Actualización no realizada.");
+                } else {
+                  this.loadingDialog = false;
+                  alertify.success("Actualización completada exitosamente.");                  
                 }
               }
-            );
-          }
-          if (
-            flag &&
-            typeof this.conyuge.key != undefined &&
-            typeof this.conyuge.key != ""
-          ) {
-            //ACTUALIZA CONYUGE
-            this.db.ref("/personas/" + this.conyuge.key).transaction(
-              () => {
-                return this.normalizedObject(this.conyuge, 2, "S");
-              },
-              (error, commited) => {
-                if (error) {
-                  flag = false;
-                  // console.error(error);
-                } else if (!commited) {
-                  flag = false;
-                }
-              }
-            );
-          }
-          if (
-            flag &&
-            typeof this.referencia.key != undefined &&
-            typeof this.conyuge.key != ""
-          ) {
-            //ACTUALIZA REFERENCIA
-            this.db.ref("/personas/" + this.referencia.key).transaction(
-              () => {
-                return this.normalizedObject(this.referencia, 3, "S");
-              },
-              (error, commited) => {
-                if (error) {
-                  flag = false;
-                  // console.error(error);
-                } else if (!commited) {
-                  flag = false;
-                }
-              }
-            );
-          }
-          if (flag) {
-            //ACTUALIZA AVAL
-            this.db.ref("/personas/" + this.aval.key).transaction(
-              () => {
-                return this.normalizedObject(this.aval, 4, "S");
-              },
-              (error, commited) => {
-                if (error) {
-                  flag = false;
-                  // console.error(error);
-                } else if (!commited) {
-                  flag = false;
-                }
-              }
-            );
-          }
-          this.loadingDialog = false;
-          if (flag) {
-            //ARROJA EL MENSAJE FINAL DEPENDIENDO EL ESTADO DE LA TRANSACCIÓN
-            this.alert("Actualización completada exitosamente.", "success");
+            );            
           } else {
-            this.alert("Actualización no realizada.", "error");
-          }
-          this.closeAlert();
-        } else if (
-          //INSERTAR SI NO EXISTE EL CLIENTE
-          this.solicitante.curp.length >= 16 &&
-          this.solicitante.key == "" &&
-          this.aval.curp.length >= 16
-        ) {
-          let solicitante = this.normalizedObject(this.solicitante, 1, "S");
-          let existeSolicitante = this.searchClient(solicitante);
-          let conyuge = this.normalizedObject(this.conyuge, 2, "S");
-          let existeConyuge = this.searchClient(conyuge);
-          let referencia = this.normalizedObject(this.referencia, 3, "S");
-          let existeReferencia = this.searchClient(referencia);
-          let aval = this.normalizedObject(this.aval, 4, "S");
-          let existeAval = this.searchClient(aval);
-          console.log(this.existeSolicitante,this.existeConyuge,this.existeReferencia,this.existeAval);
-          setTimeout(() => {
-            if (
-              this.existeSolicitante != true &&
-              this.existeConyuge != true &&
-              this.existeReferencia != true &&
-              this.existeAval != true
-            ) {
-              let solicitanteKey = this.db.ref("personas/").push(solicitante)
-                .key;
-              let conyugeKey = this.db.ref("personas/").push(conyuge).key;
-              let referenciaKey = this.db.ref("personas/").push(referencia).key;
-              let avalKey = this.db.ref("personas/").push(aval).key;
-              if (
-                solicitanteKey != "" &&
-                // conyugeKey != "" &&
-                // referenciaKey != "" &&
-                avalKey != ""
-              ) {
-                this.db
-                  .ref("solicitudes/")
-                  .push({
-                    solicitante: solicitanteKey,
-                    conyuge: conyugeKey,
-                    referencia: referenciaKey,
-                    aval: avalKey
-                  })
-                  .then(() => {
-                    this.loadingDialog = false;
-                    this.alert("Solicitud guardada exitosamente", "success");
-                    this.closeAlert();
-                  });
+            //GUARDAR NUEVO CLIENTE
+            let cliente = this.normalizedObject(this.clientediario, 1, "D");
+            this.searchClient(cliente);
+            setTimeout(() => {
+              console.log(cliente);
+              console.log(this.clientFound);
+              // return;
+              if (this.clientFound == false) {
+                // console.log("Insertando en la BDD");
+                let clienteKey = this.db.ref("personas/").push(cliente).key;
+                if (clienteKey != "") {
+                  this.db
+                    .ref("solicitudes/")
+                    .push({
+                      solicitante: clienteKey
+                    })
+                    .then(() => {
+                      this.loadingDialog = false;
+                      alertify.success("Cliente guardado exitosamente");
+                      Object.assign(this.clientediario, this.defaultCliente);
+                    });
+                }
+              } else {
+                this.loadingDialog = false;
+                alertify.error(
+                  "Los datos ingresados ya se encuentran registrados."
+                );
               }
-            } else {
-              let quien = "";
-              quien +=
-                existeSolicitante == true
-                  ? solicitante.nombre +
-                    " " +
-                    solicitante.apaterno +
-                    " " +
-                    solicitante.amaterno +
-                    ", "
-                  : "";
-              quien +=
-                existeConyuge == true
-                  ? conyuge.nombre +
-                    " " +
-                    conyuge.apaterno +
-                    " " +
-                    conyuge.amaterno +
-                    ", "
-                  : "";
-              quien +=
-                existeReferencia == true
-                  ? referencia.nombre +
-                    " " +
-                    referencia.apaterno +
-                    " " +
-                    referencia.amaterno +
-                    ", "
-                  : "";
-              quien +=
-                existeAval == true
-                  ? aval.nombre +
-                    " " +
-                    aval.apaterno +
-                    " " +
-                    aval.amaterno +
-                    ", "
-                  : "";
-              this.loadingDialog = false;
-              this.alert(
-                "Los datos de " + quien + "ya se encuentran registrados.",
-                "error"
+            }, 1800);
+          }
+        }
+      } else if (this.tabs == "two") {
+        console.log(
+          this.$refs.form1.submit(),
+          this.$refs.form4.submit(),
+          this.tipoCliente
+        );
+        if (
+          //ERROR clientes de tipo semanal
+          this.tipoCliente == "S" &&
+          this.$refs.form1.submit() == true &&
+          this.$refs.form4.submit() == true
+        ) {
+          this.loadingDialog = false;
+          alertify.error(
+            "Existen campos vacíos en la solicitud, por favor rellene todos los campos."
+          );
+        } else if (
+          //INSERTAR EL CLIENTE SEMANAL
+          this.tipoCliente == "S" &&
+          this.$refs.form1.submit() == false &&
+          this.$refs.form4.submit() == false
+        ) {
+          if (
+            //ACTUALIZARLO SI YA EXISTE
+            this.solicitante.curp.length >= 16 &&
+            this.solicitante.key != "" &&
+            this.aval.curp.length >= 16 &&
+            this.aval.key != ""
+          ) {
+            let flag = true;
+            if (flag) {
+              //ACTUALIZA SOLICITANTE
+              this.db.ref("/personas/" + this.solicitante.key).transaction(
+                () => {
+                  return this.normalizedObject(this.solicitante, 1, "S");
+                },
+                (error, commited) => {
+                  if (error) {
+                    flag = false;
+                    console.error(error);
+                  } else if (!commited) {
+                    flag = false;
+                  }
+                }
               );
             }
-          }, 2500);
-        } else {
-          this.loadingDialog = false;
-          this.alert("Los datos no pudieron ser guardados debido a un error desconocido.", "error");
-          this.closeAlert();
+            if (
+              flag &&
+              typeof this.conyuge.key != undefined &&
+              typeof this.conyuge.key != ""
+            ) {
+              //ACTUALIZA CONYUGE
+              this.db.ref("/personas/" + this.conyuge.key).transaction(
+                () => {
+                  return this.normalizedObject(this.conyuge, 2, "S");
+                },
+                (error, commited) => {
+                  if (error) {
+                    flag = false;
+                    console.error(error);
+                  } else if (!commited) {
+                    flag = false;
+                  }
+                }
+              );
+            }
+            if (
+              flag &&
+              typeof this.referencia.key != undefined &&
+              typeof this.referencia.key != ""
+            ) {
+              //ACTUALIZA REFERENCIA
+              this.db.ref("/personas/" + this.referencia.key).transaction(
+                () => {
+                  return this.normalizedObject(this.referencia, 3, "S");
+                },
+                (error, commited) => {
+                  if (error) {
+                    flag = false;
+                    console.error(error);
+                  } else if (!commited) {
+                    flag = false;
+                  }
+                }
+              );
+            }
+            if (
+              flag &&
+              typeof this.aval.key != undefined &&
+              typeof this.aval.key != ""
+            ) {
+              //ACTUALIZA AVAL
+              this.db.ref("/personas/" + this.aval.key).transaction(
+                () => {
+                  return this.normalizedObject(this.aval, 4, "S");
+                },
+                (error, commited) => {
+                  if (error) {
+                    flag = false;
+                    console.error(error);
+                  } else if (!commited) {
+                    flag = false;
+                  }
+                }
+              );
+            }
+            console.log(flag);
+            this.loadingDialog = false;
+            if (flag) {
+              //ARROJA EL MENSAJE FINAL DEPENDIENDO EL ESTADO DE LA TRANSACCIÓN
+              alertify.success("Actualización completada exitosamente.");
+            } else {
+              alertify.error("Actualización no realizada.");
+            }
+            // this.closeAlert();
+          } else if (
+            //INSERTAR SI NO EXISTE EL CLIENTE
+            this.solicitante.curp.length >= 16 &&
+            this.solicitante.key == "" &&
+            this.aval.curp.length >= 16
+          ) {
+            let solicitante = this.normalizedObject(this.solicitante, 1, "S");
+            let existeSolicitante = this.searchClient(solicitante);
+            let conyuge = this.normalizedObject(this.conyuge, 2, "S");
+            // let existeConyuge = this.searchClient(conyuge);
+            let referencia = this.normalizedObject(this.referencia, 3, "S");
+            // let existeReferencia = this.searchClient(referencia);
+            let aval = this.normalizedObject(this.aval, 4, "S");
+            let existeAval = this.searchClient(aval);
+            setTimeout(() => {
+              // console.log(solicitante);
+              console.log(this.clientFound);
+              // return;
+              if (
+                // this.existeSolicitante != true &&
+                // this.existeConyuge != true &&
+                // this.existeReferencia != true &&
+                // this.existeAval != true
+                this.clientFound == false
+              ) {
+                let solicitanteKey = this.db.ref("personas/").push(solicitante)
+                  .key;
+                let conyugeKey = this.db.ref("personas/").push(conyuge).key;
+                let referenciaKey = this.db.ref("personas/").push(referencia)
+                  .key;
+                let avalKey = this.db.ref("personas/").push(aval).key;
+                if (
+                  solicitanteKey != "" &&
+                  // conyugeKey != "" &&
+                  // referenciaKey != "" &&
+                  avalKey != ""
+                ) {
+                  this.db
+                    .ref("solicitudes/")
+                    .push({
+                      solicitante: solicitanteKey,
+                      conyuge: conyugeKey,
+                      referencia: referenciaKey,
+                      aval: avalKey
+                    })
+                    .then(() => {
+                      this.loadingDialog = false;
+                      alertify.success("Solicitud guardada exitosamente");
+                    });
+                }
+              } else {
+                let quien = "";
+                console.log(this.whoIsFound);
+                for (let i = 0; i < this.whoIsFound.length; i++) {
+                  quien +=
+                    this.whoIsFound[i].nombre +
+                    " " +
+                    this.whoIsFound[i].apaterno +
+                    " " +
+                    this.whoIsFound[i].amaterno;
+                  if (
+                    this.whoIsFound.length > 1 &&
+                    this.whoIsFound.length + 1 < i
+                  ) {
+                    quien += ", ";
+                  }
+                }
+                alertify.error(
+                  "Los datos de " + quien + " ya se encuentran registrados."
+                );
+                this.loadingDialog = false;
+              }
+            }, 2500);
+          } else {
+            this.loadingDialog = false;
+            alertify.error(
+              "Los datos no pudieron ser guardados debido a un error desconocido."
+            );
+          }
         }
       }
     },
@@ -662,8 +704,10 @@ export default {
         .orderByChild("curp")
         .equalTo(cliente.curp)
         .once("value", snapshot => {
+          console.log(snapshot.val());
           if (snapshot.val() != null) {
             this.clientFound = true;
+            return true;
           }
         });
       this.db
@@ -671,8 +715,10 @@ export default {
         .orderByChild("ocr")
         .equalTo(cliente.ocr)
         .once("value", snapshot => {
+          console.log(snapshot.val());
           if (snapshot.val() != null) {
             this.clientFound = true;
+            return true;
           }
         });
       this.db
@@ -680,10 +726,13 @@ export default {
         .orderByChild("telefono")
         .equalTo(cliente.telefono)
         .once("value", snapshot => {
+          console.log(snapshot.val());
           if (snapshot.val() != null) {
             this.clientFound = true;
+            return true;
           }
         });
+      this.whoIsFound.push(cliente);
     },
     normalizedObject(object, tipo, tipoPrestamo) {
       return {
@@ -742,6 +791,9 @@ export default {
         this.comisionistas.push(items[key]);
       }
     });
+  },
+  mounted() {
+    alertify.set("notifier", "position", "bottom-center");
   }
 };
 </script>

@@ -13,7 +13,7 @@
               <v-card flat elevation="1" class="light-blue lighten-5">
                 <v-card-title>Filtrar por:</v-card-title>
                 <v-card-text>
-                  <v-expansion-panels>
+                  <v-expansion-panels popout>
                     <v-expansion-panel>
                       <v-expansion-panel-header v-slot="{ open }">
                         <v-row no-gutters>
@@ -85,6 +85,10 @@
                             </v-menu>
                           </v-col>
                         </v-row>
+                        <v-card-actions>
+                          <v-spacer></v-spacer>
+                          <v-btn @click="resetDates" text color="red">Limpiar campos</v-btn>
+                        </v-card-actions>
                       </v-expansion-panel-content>
                     </v-expansion-panel>
                   </v-expansion-panels>
@@ -99,6 +103,16 @@
                         no-data-text="No hay comisionistas"
                       ></v-select>
                     </v-col>-->
+                    <v-col cols="12" md="6">
+                      <v-select
+                        :items="comisionistas"
+                        item-text="nombre"
+                        :return-object="true"
+                        label="Comisionistas"
+                        no-data-text="No hay comisionistas"
+                        @input="filtrar($event)"
+                      ></v-select>
+                    </v-col>
                     <v-col xs12>
                       <v-text-field
                         v-model="search"
@@ -124,6 +138,8 @@
           loading-text="Cargando... espere, por favor."
           class="elevation-1"
         >
+          <template v-slot:item.cliente="{ item }">{{item}}</template>
+          <template v-slot:item.comisionista="{ item }">{{item}}</template>
           <template v-slot:item.capital="{ item }">
             <!-- <td class="text-right"> -->
             <strong>$</strong>
@@ -136,14 +152,14 @@
             {{item.interes.toFixed(2)}}
             <!-- </td> -->
           </template>
-          <template v-slot:item.total="{ item }">
+          <template v-slot:item.monto="{ item }">
             <!-- <td class="text-right"> -->
             <strong>$</strong>
-            {{item.total.toFixed(2)}}
+            {{item.monto.toFixed(2)}}
             <!-- </td> -->
           </template>
           <template v-slot:body.append>
-            <td></td>
+            <td colspan="7"></td>
             <td class="text-center">
               <strong>$ {{totalCapital.toFixed(2)}}</strong>
             </td>
@@ -192,10 +208,46 @@ export default {
       },
       headers: [
         {
-          text: "Fecha",
+          text: "Num. Pago",
           align: "center",
           sortable: true,
-          value: "fecha"
+          value: "nPago"
+        },
+        {
+          text: "Vencimiento",
+          align: "center",
+          sortable: true,
+          value: "vencimiento"
+        },
+        {
+          text: "Fecha pago",
+          align: "center",
+          sortable: true,
+          value: "fechaPago"
+        },
+        {
+          text: "Nombre",
+          align: "center",
+          sortable: true,
+          value: "cliente.nombre"
+        },
+        {
+          text: "Ap. paterno",
+          align: "center",
+          sortable: true,
+          value: "cliente.apaterno"
+        },
+        {
+          text: "Ap. materno",
+          align: "center",
+          sortable: true,
+          value: "cliente.amaterno"
+        },
+        {
+          text: "Comisionista",
+          align: "center",
+          sortable: true,
+          value: "comisionista.nombre"
         },
         {
           text: "Capital",
@@ -213,7 +265,7 @@ export default {
           text: "Monto total",
           align: "center",
           sortable: true,
-          value: "total"
+          value: "monto"
         }
       ],
       items: [],
@@ -243,22 +295,22 @@ export default {
     },
     totalPagos() {
       let total = 0;
-      for (let i = 0; i < this.items.length; i++) {
-        total = total + this.items[i].total;
+      for (let i = 0; i < this.filteredItems.length; i++) {
+        total = total + this.filteredItems[i].monto;
       }
       return total;
     },
     totalInteres() {
       let total = 0;
-      for (let i = 0; i < this.items.length; i++) {
-        total = total + this.items[i].interes;
+      for (let i = 0; i < this.filteredItems.length; i++) {
+        total = total + this.filteredItems[i].interes;
       }
       return total;
     },
     totalCapital() {
       let total = 0;
-      for (let i = 0; i < this.items.length; i++) {
-        total = total + this.items[i].capital;
+      for (let i = 0; i < this.filteredItems.length; i++) {
+        total = total + this.filteredItems[i].capital;
       }
       return total;
     }
@@ -272,6 +324,13 @@ export default {
     }
   },
   methods: {
+    resetDates(){
+      this.sincemenu = false,
+      this.untilmenu = false,
+      this.since = "",
+      this.until = ""
+      this.getAllItems();
+    },
     sinceDate(date) {
       this.$refs.sincemenu.save(date);
       if (this.since != "" && this.until != "") {
@@ -334,18 +393,20 @@ export default {
         });
     },
     loadItems(items) {
-      // console.log(items);
       this.items = [];
       for (let key in items) {
+        // console.log(items[key].cliente, items[key].comisionista);
         this.items.push({
           key: key,
-          cargo: items[key].idCargo,
-          prestamo: items[key].idPrestamo,
-          cliente: items[key].idCliente,
           capital: items[key].capital,
+          cliente: items[key].cliente,
+          comisionista: items[key].comisionista,
+          fechaPago: items[key].fechaPago,
+          vencimiento: items[key].vencimiento,
+          idPrestamo: items[key].idPrestamo,
           interes: items[key].interes,
-          total: items[key].total,
-          fecha: items[key].fechaPago
+          monto: items[key].monto,
+          nPago: items[key].nPago
         });
       }
       this.filteredItems = this.items;

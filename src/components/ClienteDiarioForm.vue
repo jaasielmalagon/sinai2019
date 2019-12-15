@@ -152,7 +152,7 @@
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" xs="5">
-                  <v-text-field v-model="cliente.curp" label="CURP" disabled readonly></v-text-field>
+                  <v-text-field v-model="cliente.curp" label="CURP"></v-text-field>
                 </v-col>
                 <v-col cols="12" xs="5">
                   <v-text-field
@@ -588,7 +588,7 @@ export default {
       entidad: { required },
       sexo: { required },
       ocr: { required, maxLength: maxLength(13) },
-      telefono: { required, maxLength: maxLength(10) },      
+      telefono: { required, maxLength: maxLength(10) }
     },
     homoclave: { required, maxLength: maxLength(2) }
   },
@@ -657,7 +657,7 @@ export default {
         { id: "MEX-YUC", value: "YN", label: "Yucatán (YUC)" },
         { id: "MEX-ZAC", value: "ZS", label: "Zacatecas (ZAC)" }
       ],
-      switch1: false,      
+      switch1: false
     };
   },
   watch: {
@@ -806,29 +806,41 @@ export default {
     filtrarNombre() {
       let partirNombre = this.cliente.nombre.split(" ");
       if (partirNombre.length >= 2) {
-        if (
-          partirNombre[0] == "JOSE" ||
-          partirNombre[0] == "MARIA" ||
-          partirNombre[0] == "JOSÉ" ||
-          partirNombre[0] == "MARÍA" ||
-          partirNombre[0] == "J" ||
-          partirNombre[0] == "MA" ||
-          partirNombre[0] == "J." ||
-          partirNombre[0] == "MA." ||
-          partirNombre[0] == "JOCE" ||
-          partirNombre[0] == "MARYA" ||
-          partirNombre[0] == "JOCÉ" ||
-          partirNombre[0] == "JOZE" ||
-          partirNombre[0] == "JOZÉ"
-        ) {
-          this.cliente.curp += partirNombre[1].substring(0, 1);
-          return partirNombre[1];
-        } else {
-          this.cliente.curp +=
-            this.cliente.nombre.substring(0, 1) == "Ñ"
-              ? "X"
-              : this.cliente.nombre.substring(0, 1);
-          return partirNombre[0];
+        for (let i = 0; i < partirNombre.length; i++) {
+          if (
+            partirNombre[i] != "JOSE" &&
+            partirNombre[i] != "MARIA" &&
+            partirNombre[i] != "JOSÉ" &&
+            partirNombre[i] != "MARÍA" &&
+            partirNombre[i] != "J" &&
+            partirNombre[i] != "MA" &&
+            partirNombre[i] != "M." &&
+            partirNombre[i] != "M" &&
+            partirNombre[i] != "J." &&
+            partirNombre[i] != "MA." &&
+            partirNombre[i] != "JOCE" &&
+            partirNombre[i] != "MARYA" &&
+            partirNombre[i] != "JOCÉ" &&
+            partirNombre[i] != "JOZE" &&
+            partirNombre[i] != "JOZÉ" &&
+            partirNombre[i] != "DE" &&
+            partirNombre[i] != "LOS" &&
+            partirNombre[i] != "LAS" &&
+            partirNombre[i] != "DEL" &&
+            partirNombre[i] != "LA" &&
+            partirNombre[i] != "EL"
+          ) {
+            this.cliente.curp += partirNombre[i].substring(0, 1);
+            // console.log(partirNombre[i])
+            return partirNombre[i];
+          } //else {
+          //   console.log(partirNombre[i])
+          //   this.cliente.curp +=
+          //     this.cliente.nombre.substring(0, 1) == "Ñ"
+          //       ? "X"
+          //       : this.cliente.nombre.substring(0, 1);
+          //   return partirNombre[i];
+          // }
         }
       } else {
         this.cliente.curp +=
@@ -911,17 +923,31 @@ export default {
       this.$refs.menu.save(date);
     },
     uppercasedName() {
-      this.cliente.nombre = this.cliente.nombre.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+      this.cliente.nombre = this.cliente.nombre
+        .toUpperCase()
+        .normalize("NFD")
+        // .replace(/[\u0300-\u036f]/g, "");
     },
     uppercasedLastname() {
-      this.cliente.apaterno = this.cliente.apaterno.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
-      this.cliente.amaterno = this.cliente.amaterno.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+      this.cliente.apaterno = this.cliente.apaterno
+        .toUpperCase()
+        .normalize("NFD");
+      // .replace(/[\u0300-\u036f]/g, "");
+      this.cliente.amaterno = this.cliente.amaterno
+        .toUpperCase()
+        .normalize("NFD");
+      // .replace(/[\u0300-\u036f]/g, "");
     },
     uppercasedAddress() {
-      this.cliente.direccion = this.cliente.direccion.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+      this.cliente.direccion = this.cliente.direccion
+        .toUpperCase()
+        .normalize("NFD");
+      // .replace(/[\u0300-\u036f]/g, "");
     },
     uppercasedOcupacion() {
-      this.cliente.ocupacion = this.cliente.ocupacion.toUpperCase();
+      this.cliente.ocupacion = this.cliente.ocupacion
+        .toUpperCase()
+        .normalize("NFD");
     },
     submit() {
       this.$v.$touch();

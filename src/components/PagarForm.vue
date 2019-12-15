@@ -42,46 +42,53 @@
               <v-data-table
                 v-model="selected"
                 show-select
-                item-key="key"
+                item-key="nPago"
                 :headers="headers"
                 :items="items"
                 :loading="loading"
+                :items-per-page="5"
                 loading-text="Cargando... espere, por favor."
                 class="elevation-1"
+                dense
               >
-                <template v-slot:item.idMovimiento="{item}">
+                <!-- <template v-slot:item.estado="{item}">
                   <td class="text-left">
-                    <v-chip class="ma-2" x-small pill v-if="item.idMovimiento == 14">
+                    <v-chip class="ma-2" x-small pill v-if="item.estado == 0">
                       <strong>
-                        <v-avatar left color="green">PR</v-avatar>Pago Regular
+                        <v-avatar left color="red">
+                          <v-icon color="white">mdi-close</v-icon>
+                        </v-avatar>No pagado
                       </strong>
                     </v-chip>
-                    <v-chip class="ma-2" x-small pill v-if="item.idMovimiento == 7">
+                    <v-chip class="ma-2" x-small pill v-if="item.estado == 1">
                       <strong>
-                        <v-avatar left color="red">CM</v-avatar>Cargo Moratorio
+                        <v-avatar left color="green">
+                          <v-icon color="white">mdi-check</v-icon>
+                        </v-avatar>Pagado
                       </strong>
                     </v-chip>
-                  </td>
-                </template>
-                <template v-slot:item.capital="{ item }">
-                  <td class="text-right">
-                    <strong>$</strong>
-                    {{item.capital.toFixed(2)}}
                   </td>
                 </template>-->
-                <template v-slot:item.interes="{ item }">
+                <template v-slot:item.pagoCapital="{ item }">
                   <td class="text-right">
                     <strong>$</strong>
-                    {{item.interes.toFixed(2)}}
+                    {{item.pagoCapital.toFixed(2)}}
                   </td>
-                </template>
-                <template v-slot:item.total="{ item }">
+                </template>-->
+                <template v-slot:item.pagoInteres="{ item }">
                   <td class="text-right">
                     <strong>$</strong>
-                    {{item.total.toFixed(2)}}
+                    {{item.pagoInteres.toFixed(2)}}
                   </td>
                 </template>
-                <template v-slot:body.append>
+                <template v-slot:item.totalPago="{ item }">
+                  <td class="text-right">
+                    <strong>$</strong>
+                    {{item.totalPago.toFixed(2)}}
+                  </td>
+                </template>
+                <template v-slot:body.append>                  
+                  <td></td>
                   <td></td>
                   <td></td>
                   <td class="text-center">
@@ -120,36 +127,74 @@ export default {
       loading: true,
       singleSelect: false,
       selected: [],
+      // headers: [
+      //   {
+      //     text: "Movimiento",
+      //     align: "center",
+      //     sortable: false,
+      //     value: "idMovimiento"
+      //   },
+      //   {
+      //     text: "Capital",
+      //     align: "center",
+      //     sortable: false,
+      //     value: "capital"
+      //   },
+      //   {
+      //     text: "Interés",
+      //     align: "center",
+      //     sortable: false,
+      //     value: "interes"
+      //   },
+      //   {
+      //     text: "Total",
+      //     align: "center",
+      //     sortable: false,
+      //     value: "total"
+      //   },
+      //   {
+      //     text: "Fecha límite",
+      //     align: "center",
+      //     sortable: false,
+      //     value: "fechaPagoVencimiento"
+      //   }
+      // ],
       headers: [
         {
-          text: "Movimiento",
+          text: "Pago",
+          align: "center",
+          sortable: true,
+          value: "nPago"
+        },
+        // {
+        //   text: "Estado",
+        //   align: "center",
+        //   sortable: false,
+        //   value: "estado"
+        // },
+        {
+          text: "Vencimiento",
           align: "center",
           sortable: false,
-          value: "idMovimiento"
+          value: "vencimiento"
         },
         {
           text: "Capital",
           align: "center",
           sortable: false,
-          value: "capital"
+          value: "pagoCapital"
         },
         {
           text: "Interés",
           align: "center",
           sortable: false,
-          value: "interes"
+          value: "pagoInteres"
         },
         {
           text: "Total",
           align: "center",
           sortable: false,
-          value: "total"
-        },
-        {
-          text: "Fecha límite",
-          align: "center",
-          sortable: false,
-          value: "fechaPagoVencimiento"
+          value: "totalPago"
         }
       ],
       items: []
@@ -162,21 +207,21 @@ export default {
     totalPagos() {
       let total = 0;
       for (let i = 0; i < this.selected.length; i++) {
-        total = total + this.selected[i].total;
+        total = total + this.selected[i].totalPago;
       }
       return total;
     },
     totalInteres() {
       let total = 0;
       for (let i = 0; i < this.selected.length; i++) {
-        total = total + this.selected[i].interes;
+        total = total + this.selected[i].pagoInteres;
       }
       return total;
     },
     totalCapital() {
       let total = 0;
       for (let i = 0; i < this.selected.length; i++) {
-        total = total + this.selected[i].capital;
+        total = total + this.selected[i].pagoCapital;
       }
       return total;
     },
@@ -190,7 +235,7 @@ export default {
   },
   mounted() {
     // console.log(this.prestamo.key);
-    this.db
+    /* this.db
       .ref("/cargoabono")
       .orderByChild("idPrestamo")
       .equalTo(this.prestamo.key)
@@ -199,7 +244,7 @@ export default {
         let array = [];
         for (let key in items) {
           if (items[key].estado == "NP") {
-            // console.log(items[key]);
+            console.log(items[key]);
             array.push({
               key: key,
               capital: items[key].capital,
@@ -217,6 +262,48 @@ export default {
           }
         }
         this.items = array;
+        this.loading = false;
+      });*/
+    // console.log(this.prestamo);
+    this.db
+      .ref("/prestamos")
+      .orderByKey()
+      .equalTo(this.prestamo.key)
+      .limitToFirst(1)
+      .on("value", snapshot => {
+        let items = snapshot.val();
+        let array = [];
+        for (let key in items) {
+          for (let i = 0; i < items[key].tabla.length; i++) {
+            // console.log(items[key].tabla[i]);
+            if (
+              items[key].tabla[i] != undefined &&
+              items[key].tabla[i] != null &&
+              (items[key].tabla[i].estado == "A" || items[key].tabla[i].estado == 0)
+            ) {
+              array.push(items[key].tabla[i]);
+            }
+          }
+        }
+        this.items = array;
+        for (let i = 0; i < this.items.length; i++) {
+          let year = this.items[i].vencimiento.substring(6, 10);
+          let month = this.items[i].vencimiento.substring(3, 5);
+          let day = this.items[i].vencimiento.substring(0, 2);
+          let fechaVencimiento = new Date(
+            year,
+            month - 1,
+            day,
+            "13",
+            "00",
+            "00",
+            "00"
+          );
+          let hoy = new Date();
+          if (fechaVencimiento.getTime() < hoy.getTime()) {
+            // console.log(hoy.getTime(),fechaVencimiento.getTime());
+          }
+        }
         this.loading = false;
       });
   }

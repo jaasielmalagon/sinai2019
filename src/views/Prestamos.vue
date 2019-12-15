@@ -1,7 +1,7 @@
 <template>
-  <v-container>
-    <v-row>
-      <v-col xs12>
+  <v-container fluid>
+    <v-row no-gutters>
+      <v-col cols="12" xs="12">
         <div class="text-center">
           <v-btn @click="add" fab dark small color="light-green lighten-2">
             <v-icon dark>add</v-icon>
@@ -12,8 +12,8 @@
         </div>
       </v-col>
     </v-row>
-    <v-row>
-      <v-col xs12>
+    <v-row no-gutters>
+      <v-col cols="12" xs="12">
         <prestamos-table opciones="normal" v-on:selectItem="selectItem($event)"></prestamos-table>
       </v-col>
     </v-row>
@@ -246,7 +246,8 @@ export default {
         abonos: [],
         tabla: [] //{ fecha: "", capital: "", interes: "", pago: "", inicial: "", final: "" }
       },
-      confirmationDialog: false
+      confirmationDialog: false,
+      folio: 0
     };
   },
   methods: {
@@ -259,24 +260,20 @@ export default {
         this.prestamo.tabla.length >= 16 &&
         formInvalid == false
       ) {
+        this.prestamo.folio = this.folio;
         this.db
           .ref("prestamos/")
           .push(this.prestamo)
           .then(() => {
             this.loadingDialog = false;
-            this.alerta(
-              "Préstamo generado y guardado correctamente",
-              "success"
-            );
             this.confirmationDialog = false;
-            this.closeAlert();
             this.cancel(0);
+            alertify.success("Préstamo generado y guardado correctamente");
           });
       } else {
         this.loadingDialog = false;
-        this.alerta(
-          "Para generar un préstamo primero seleccione una solicitud y complete todos los campos del formulario.",
-          "error"
+        alertify.error(
+          "Para generar un préstamo primero seleccione una solicitud y complete todos los campos del formulario."
         );
         this.closeAlert();
       }
@@ -378,15 +375,14 @@ export default {
             this.prestamo.intereses + this.prestamo.capital
           );
           this.tablaAmortizacion();
+          this.prestamo.folio = this.folio;
           this.loadingDialog = false;
         }
       } else {
         this.loadingDialog = false;
-        this.alerta(
-          "El préstamo no ha sido generado correctamente, por favor verifique la información y reintente.",
-          "error"
+        alertify.error(
+          "El préstamo no ha sido generado correctamente, por favor verifique la información y reintente."
         );
-        this.closeAlert();
       }
     },
     tablaAmortizacion() {
@@ -400,14 +396,16 @@ export default {
       for (let i = 0; i < this.prestamo.plazo; i++) {
         let pagoN = {
           nPago: i + 1,
-          fecha: this.siguientePago(i),
-          vencimiento: this.fechaVencimiento(i), //CAMBIAR
+          fecha: "-",
+          // vencimiento: this.fechaVencimiento(i), //CAMBIAR
+          // fecha: this.siguientePago(i),
+          vencimiento: this.siguientePago(i),
           pagoCapital: parseFloat(pagoCapital.toFixed(2)),
           pagoInteres: parseFloat(pagoInteres.toFixed(2)),
           totalPago: parseFloat(totalPago.toFixed(2)),
           final: parseFloat((prestamo - totalPago * (i + 1)).toFixed(2)),
           inicial: parseFloat((prestamo - totalPago * i).toFixed(2)),
-          estado: "A"
+          estado: 0
         };
         this.prestamo.tabla.push(pagoN);
       }
@@ -422,9 +420,15 @@ export default {
         let day = this.prestamo.inicio.substring(8, 10);
         hoy = new Date(year, month - 1, day, "13", "00", "00", "00");
       } else {
-        let year = this.prestamo.tabla[posicion - 1].fecha.substring(6, 10);
-        let month = this.prestamo.tabla[posicion - 1].fecha.substring(3, 5);
-        let day = this.prestamo.tabla[posicion - 1].fecha.substring(0, 2);
+        let year = this.prestamo.tabla[posicion - 1].vencimiento.substring(
+          6,
+          10
+        );
+        let month = this.prestamo.tabla[posicion - 1].vencimiento.substring(
+          3,
+          5
+        );
+        let day = this.prestamo.tabla[posicion - 1].vencimiento.substring(0, 2);
         hoy = new Date(year, month - 1, day, "13", "00", "00", "00");
       }
 
@@ -562,7 +566,22 @@ export default {
       this.alert.show = true;
     }
   },
-  created() {}
+  created() {
+    this.db
+      .ref("/prestamos")
+      .orderByKey()
+      .on("value", snapshot => {
+        let snap = snapshot.val();
+        console.log(snap);
+        if (snap != null) {
+          for (let key in snap) {
+            this.folio++;
+          }
+        } else {
+          this.folio = 1;
+        }
+      });
+  }
 };
 </script>
 

@@ -1,37 +1,51 @@
 <template>
   <v-container fluid>
-    <v-row>
-      <v-col xs12 background-color="blue-grey lighten-4">
-        <v-tabs v-model="tab" background-color="#0051A0" centered dark icons-and-text>
-          <v-tabs-slider></v-tabs-slider>
+    <v-row no-gutters>
+      <v-col cols="12" xs="12" background-color="blue-grey lighten-4">
+        <v-card>
+          <v-toolbar dense color="#0051A0" dark>
+            <template v-slot:extension>
+              <v-tabs
+                v-model="tab"
+                background-color="#0051A0"
+                fixed-tabs
+                centered
+                dark
+                icons-and-text
+              >
+                <v-tabs-slider></v-tabs-slider>
 
-          <v-tab href="#tab-1">
-            Realizar pago
-            <v-icon>payment</v-icon>
-          </v-tab>
+                <v-tab href="#tab-1">
+                  Realizar pago
+                  <v-icon>payment</v-icon>
+                </v-tab>
 
-          <v-tab href="#tab-2">
-            Pagos realizados
-            <v-icon>remove_red_eye</v-icon>
-          </v-tab>
-        </v-tabs>
-
-        <v-tabs-items v-model="tab">
-          <v-tab-item value="tab-1">
-            <v-card flat>
-              <v-card-text>
-                <prestamos-table opciones="pagar" v-on:selectItem="selectItem($event)"></prestamos-table>
-              </v-card-text>
-            </v-card>
-          </v-tab-item>
-          <v-tab-item value="tab-2">
-            <v-card flat>
-              <v-card-text>
-                <pagos-table></pagos-table>
-              </v-card-text>
-            </v-card>
-          </v-tab-item>
-        </v-tabs-items>
+                <v-tab href="#tab-2">
+                  Pagos realizados
+                  <v-icon>remove_red_eye</v-icon>
+                </v-tab>
+              </v-tabs>
+            </template>
+          </v-toolbar>
+          <v-card-text style="padding: 0">
+            <v-tabs-items v-model="tab">
+              <v-tab-item value="tab-1">
+                <!-- <v-card flat outlined style="padding: 0px">
+                  <v-card-text> -->
+                    <prestamos-table opciones="pagar" v-on:selectItem="selectItem($event)"></prestamos-table>
+                  <!-- </v-card-text>
+                </v-card> -->
+              </v-tab-item>
+              <v-tab-item value="tab-2">
+                <v-card flat>
+                  <v-card-text>
+                    <pagos-table></pagos-table>
+                  </v-card-text>
+                </v-card>
+              </v-tab-item>
+            </v-tabs-items>
+          </v-card-text>
+        </v-card>
       </v-col>
     </v-row>
     <v-row justify="center">
@@ -172,40 +186,137 @@ export default {
       this.selectedItem.cargos = $event;
       this.confirmationDialog = true;
     },
+    // saveData() {
+    //   this.loadingDialog = true;
+    //   let hoy = this.hoy();
+    //   // console.log(this.selectedItem.cargos);
+    //   for (let i = 0; i < this.selectedItem.cargos.length; i++) {
+    //     let error = null;
+    //     this.db
+    //       .ref("cargoabono/" + this.selectedItem.cargos[i].key)
+    //       .update({ estado: "S", fechaPago: hoy }, e => {
+    //         error = e;
+    //       });
+    //     if (error) {
+    //       console.log(error);
+    //     } else {
+    //       this.db
+    //         .ref("pagos/")
+    //         .push({
+    //           fechaPago: hoy,
+    //           idCliente: this.selectedItem.cargos[i].cliente,
+    //           idPrestamo: this.selectedItem.cargos[i].idPrestamo,
+    //           idCargo: this.selectedItem.cargos[i].key,
+    //           capital: this.selectedItem.cargos[i].capital,
+    //           interes: this.selectedItem.cargos[i].interes,
+    //           total: this.selectedItem.cargos[i].total
+    //         })
+    //         .then(() => {
+    //           this.loadingDialog = false;
+    //           this.alerta("Pago procesado y guardado correctamente", "success");
+    //           this.confirmationDialog = false;
+    //           // this.closeAlert();
+    //           // this.cancel();
+    //         });
+    //     }
+    //   }
+    // },
     saveData() {
       this.loadingDialog = true;
       let hoy = this.hoy();
-      // console.log(this.selectedItem.cargos);
+      // console.log(this.selectedItem);
       for (let i = 0; i < this.selectedItem.cargos.length; i++) {
-        let error = null;
+        // console.log(
+        //   "/prestamos/" +
+        //     this.selectedItem.key +
+        //     "/tabla/" +
+        //     (this.selectedItem.cargos[i].nPago - 1)
+        // );
+        this.loadingDialog = false;
         this.db
-          .ref("cargoabono/" + this.selectedItem.cargos[i].key)
-          .update({ estado: "S", fechaPago: hoy }, e => {
-            error = e;
-          });
-        if (error) {
-          console.log(error);
-        } else {
-          this.db
-            .ref("pagos/")
-            .push({
-              fechaPago: hoy,
-              idCliente: this.selectedItem.cargos[i].cliente,
-              idPrestamo: this.selectedItem.cargos[i].idPrestamo,
-              idCargo: this.selectedItem.cargos[i].key,
-              capital: this.selectedItem.cargos[i].capital,
-              interes: this.selectedItem.cargos[i].interes,
-              total: this.selectedItem.cargos[i].total
-            })
-            .then(() => {
-              this.loadingDialog = false;
-              this.alerta("Pago procesado y guardado correctamente", "success");
-              this.confirmationDialog = false;
-              // this.closeAlert();
-              // this.cancel();
-            });
-        }
+          .ref(
+            "/prestamos/" +
+              this.selectedItem.key +
+              "/tabla/" +
+              (this.selectedItem.cargos[i].nPago - 1)
+          )
+          .update(
+            {
+              estado: 1,
+              fecha: hoy
+            },
+            function(error) {
+              if (error) {
+                alertify.error("EL PAGO NO PUDO SER PROCESADO");
+                this.loadingDialog = false;
+              } else {
+                // console.log(this.selectedItem);
+                this.db
+                  .ref("pagos/")
+                  .push({
+                    vencimiento: this.selectedItem.cargos[i].vencimiento,
+                    fechaPago: hoy,
+                    cliente: this.selectedItem.cliente,
+                    idPrestamo: this.selectedItem.key,
+                    nPago: this.selectedItem.cargos[i].nPago,
+                    comisionista: this.selectedItem.comisionista,
+                    monto: this.selectedItem.cargos[i].totalPago,
+                    capital: this.selectedItem.cargos[i].pagoCapital,
+                    interes: this.selectedItem.cargos[i].pagoInteres
+                  })
+                  .then(
+                    function() {
+                      this.cambiarEstadoPrestamo();
+                      alertify.success("PAGO PROCESADO CORRECTAMENTE");
+                      this.loadingDialog = false;
+                      this.confirmationDialog = false;
+                      this.closeAlert();
+                      this.cancel();
+                    }.bind(this)
+                  );
+              }
+            }.bind(this)
+          );
       }
+    },
+    cambiarEstadoPrestamo() {
+      let pagados = 0;
+      this.db
+        .ref("/prestamos")
+        .orderByKey()
+        .equalTo(this.selectedItem.key)
+        .once("value", snapshot => {
+          let snap = snapshot.val();
+          console.log(snap)
+          for (let key in snap) {
+            console.log(snap[key].activo)
+            if (snap[key].activo == true) {
+              let tabla = snap[key].tabla;
+              for (let i = 0; i < tabla.length; i++) {
+                if (tabla[i].estado == 1) {
+                  pagados++;
+                }
+              }
+              console.log(pagados)
+              if (tabla.length == pagados) {
+                this.db.ref("/prestamos/" + this.selectedItem.key).update(
+                  {
+                    activo: false
+                  },
+                  function(error) {
+                    console.log(error)
+                    if (error) {
+                      alertify.error("Error al liquidar préstamo " + this.selectedItem.key);                      
+                    } else {
+                      alertify.success("PAGO PROCESADO CORRECTAMENTE");
+                    }
+                    this.loadingDialog = false;
+                  }.bind(this)
+                );
+              }
+            }
+          }
+        });
     },
     closeAlert() {
       setTimeout(() => {
@@ -222,7 +333,7 @@ export default {
     },
     selectItem(item) {
       // console.log(item);
-      this.formTitle = "Aplicación de pago";
+      this.formTitle = "Aplicar de pago";
       this.formDialog = true;
       Object.assign(this.selectedItem, item);
     },

@@ -51,13 +51,15 @@
           <v-flex class="recuadro" xs4>
             <v-card :color="blanco">
               <v-card-title class="ml-1 title font-weight-regular">PLAZO DE CRÉDITO:</v-card-title>
-              <v-card-text class="mx-2 body-2">{{prestamo.plazo}} {{prestamo.tipo == "D" ? "Dias naturales" : "Semanas naturales"}}</v-card-text>
+              <v-card-text
+                class="mx-2 body-2"
+              >{{prestamo.plazo}} {{prestamo.tipo == "D" ? "Dias naturales" : "Semanas naturales"}}</v-card-text>
             </v-card>
           </v-flex>
           <v-flex class="recuadro" xs4>
             <v-card :color="blanco">
               <v-card-title class="ml-1 title font-weight-regular">FECHA LÍMITE DE PAGO:</v-card-title>
-              <v-card-text class="mx-2 body-2"> {{prestamo.tabla[prestamo.tabla.length-1].fecha}}</v-card-text>
+              <v-card-text class="mx-2 body-2">{{prestamo.tabla[prestamo.tabla.length-1].fecha}}</v-card-text>
             </v-card>
           </v-flex>
           <v-flex class="recuadro" xs6>
@@ -208,17 +210,18 @@ export default {
       morado: "#D9E2F3",
       blanco: "#FFF",
       aval: {},
-      folio: 1
+      folio: 0
     };
   },
   mounted() {
+    this.foliar();
     let aval = "";
     this.db
       .ref("/solicitudes")
       .orderByKey()
       .equalTo(this.prestamo.solicitud)
       .on("value", snapshot => {
-        let snap = snapshot.val();        
+        let snap = snapshot.val();
         for (let key in snap) {
           aval = snap[key].aval;
           // console.log(aval);
@@ -243,20 +246,12 @@ export default {
           }
         }
       });
-
-    this.db
-      .ref("/prestamos")
-      .orderByKey()
-      .on("value", snapshot => {
-        let snap = snapshot.val();        
-        if (snap != null) this.folio = snap.lenght + 1;
-      });
   },
   methods: {
     print(element) {
       let printContents, popupWin;
       printContents = document.getElementById(element).innerHTML;
-      
+
       popupWin = window.open(
         "",
         "_blank",
@@ -299,6 +294,34 @@ export default {
       );
       popupWin.document.body.appendChild(vuetifyScript);
       popupWin.document.close();
+    },
+    foliar() {
+      console.log(this.prestamo);
+      if (
+        this.prestamo.key != "" &&
+        this.prestamo.key != null &&
+        this.prestamo.key != undefined
+      ) {
+        this.folio = this.prestamo.folio;
+      } else {
+        this.db
+          .ref("/prestamos")
+          .orderByKey()
+          .on("value", snapshot => {
+            let snap = snapshot.val();
+            console.log(snap);
+            if (snap != null) {
+              let folio = 0;
+              for (let key in snap) {
+                folio++;
+              }
+              console.log(folio);
+              this.folio = folio + 1;
+            } else {
+              this.folio = 1;
+            }
+          });
+      }
     }
   }
 };

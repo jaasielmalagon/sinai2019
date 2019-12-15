@@ -1,15 +1,15 @@
 <template>
-  <v-container grid-list-md text-xs-center>
+  <v-container fluid>
     <v-card class="light-blue lighten-5">
       <v-card-title>
-        <v-container grid-list-md>
-          <v-layout row wrap>
-            <v-flex xs12 sm4>
+        <v-container fluid>
+          <v-row no-gutters>
+            <v-col cols="12" xs="12" md="4">
               <div class="display-2 font-weight-light">Clientes</div>
-            </v-flex>
-            <v-flex xs12 sm8>
-              <v-layout row wrap>
-                <v-flex xs12 sm6>
+            </v-col>
+            <v-col cols="12" xs="12" md="8">
+              <v-row no-gutters>
+                <v-col cols="12" xs="12" md="4">
                   <v-select
                     @change="filtrar($event)"
                     :items="comisionistas"
@@ -18,8 +18,8 @@
                     label="Comisionistas"
                     no-data-text="No hay comisionistas"
                   ></v-select>
-                </v-flex>
-                <v-flex xs12 sm6>
+                </v-col>
+                <v-col cols="12" xs="12" md="6" offset-md="1">
                   <v-text-field
                     v-model="search"
                     append-icon="search"
@@ -27,13 +27,13 @@
                     single-line
                     hide-details
                   ></v-text-field>
-                </v-flex>
-              </v-layout>
-            </v-flex>
-          </v-layout>
+                </v-col>
+              </v-row>
+            </v-col>
+          </v-row>
         </v-container>
       </v-card-title>
-      <v-card-text>
+      <v-card-text style="padding: 0">
         <v-data-table
           :headers="headers"
           :items="filteredItems"
@@ -41,33 +41,8 @@
           :loading="loading"
           loading-text="Cargando... espere, por favor."
           class="elevation-1"
-          dense
+          :items-per-page="5"
         >
-          <!-- <v-progress-linear v-slot:progress color="blue" indeterminate></v-progress-linear> -->
-          <!-- <template slot="items" slot-scope="props">
-            <tr>
-              <td class="text-xs-center">{{ props.item.nombre }}</td>
-              <td>{{ props.item.apaterno }}</td>
-              <td>{{ props.item.amaterno }}</td>
-              <td class="text-xs-center">{{ props.item.curp }}</td>
-              <td class="text-xs-center">{{ props.item.ocr }}</td>
-              <td class="text-xs-center">{{ props.item.direccion }}</td>
-              <td class="text-xs-center">{{ props.item.telefono }}</td>
-              <td class="text-xs-center" v-if="options == 1">
-                <v-btn @click="$emit('editClient', props.item)" icon small color="transparent">
-                  <v-icon dark color="light-blue accent-3">edit</v-icon>
-                </v-btn>
-                <v-btn @click="deleteItem(props.item)" icon small color="transparent">
-                  <v-icon dark color="red lighten-1">delete</v-icon>
-                </v-btn>
-              </td>
-              <td class="text-xs-center" v-if="options == 2">
-                <v-btn @click="$emit('selectClient', props.item)" icon small color="transparent">
-                  <v-icon dark color="light-blue accent-3">check</v-icon>
-                </v-btn>
-              </td>
-            </tr>
-          </template>-->
           <template v-slot:item.opc="{ item }" v-if="options == 1">
             <v-icon
               @click="$emit('editClient', item)"
@@ -148,7 +123,7 @@ export default {
         comisionista: ""
       },
       headers: [
-        // { text: "Key", align: "center", sortable: true, value: "key" },
+        { text: "ID", align: "center", sortable: true, value: "key" },
         {
           text: "Nombre",
           align: "center",

@@ -57,25 +57,33 @@
         :headers="amortHeaders"
         :items="prestamo.tabla"
         :items-per-page="prestamo.plazo"
-        class="elevation-5"
+        class="elevation-5 strip"
         hide-default-footer
         calculate-widths
       >
         <template v-slot:item.inicial="{ item }">
-          <strong>$</strong> {{item.inicial.toFixed(2)}}
+          <strong>$</strong>
+          {{item.inicial.toFixed(2)}}
         </template>
         <template v-slot:item.final="{ item }">
-          <strong>$</strong> {{item.final.toFixed(2)}}
+          <strong>$</strong>
+          {{item.final.toFixed(2)}}
         </template>
         <template v-slot:item.pagoCapital="{ item }">
-          <strong>$</strong> {{item.pagoCapital.toFixed(2)}}
+          <strong>$</strong>
+          {{item.pagoCapital.toFixed(2)}}
         </template>
         <template v-slot:item.pagoInteres="{ item }">
-          <strong>$</strong> {{item.pagoInteres.toFixed(2)}}
+          <strong>$</strong>
+          {{item.pagoInteres.toFixed(2)}}
         </template>
         <template v-slot:item.totalPago="{ item }">
-          <strong>$</strong> {{item.totalPago.toFixed(2)}}
+          <strong>$</strong>
+          {{item.totalPago.toFixed(2)}}
         </template>
+        <template v-slot:item.opc="{ item }">
+            
+          </template>
       </v-data-table>
     </v-card-text>
   </v-card>
@@ -98,16 +106,16 @@ export default {
           align: "center",
           value: "nPago"
         },
-        // {
-        //   text: "Fecha vencimiento",
-        //   align: "center",
-        //   value: "vencimiento"
-        // },
         {
-          text: "Fecha de pago",
+          text: "Fecha vencimiento",
           align: "center",
-          value: "fecha"
+          value: "vencimiento"
         },
+        // {
+        //   text: "Fecha de pago",
+        //   align: "center",
+        //   value: "fecha"
+        // },
         {
           text: "Saldo inicial",
           align: "center",
@@ -132,6 +140,11 @@ export default {
           text: "Total del pago",
           align: "center",
           value: "totalPago"
+        },
+        {
+          text: "Sello/Firma",
+          align: "center",
+          value: "opc"
         }
       ]
     };
@@ -185,7 +198,7 @@ export default {
     }
   },
   mounted() {
-    // console.log(this.prestamo.tabla);
+    console.log(this.prestamo.tabla);
   }
 };
 </script>
@@ -194,5 +207,8 @@ td,
 th {
   margin: 0%;
   padding: 0%;
+}
+.strip td {
+  border: black solid 1px;
 }
 </style>

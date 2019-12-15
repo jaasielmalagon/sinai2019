@@ -10,7 +10,7 @@
     <v-form>
       <v-container>
         <v-row>
-          <v-col cols="12" md="6" v-if="!esReferencia">
+          <v-col cols="12" md="6" v-if="!esReferencia && !esAval">
             <v-select
               v-model="cliente.comisionista"
               :items="comisionistas"
@@ -21,7 +21,7 @@
               @input="generateCurp"
             ></v-select>
           </v-col>
-          <v-col cols="12" md="6">
+          <v-col cols="12" md="6" v-if="!esReferencia">
             <v-menu
               ref="menu"
               v-model="menu"
@@ -40,7 +40,7 @@
                   readonly
                   v-on="on"
                   @input="$v.cliente.bornDate.$touch()"
-                  @blur="$v.cliente.bornDate.$touch()"                  
+                  @blur="$v.cliente.bornDate.$touch()"
                 ></v-text-field>
               </template>
               <v-date-picker
@@ -92,10 +92,10 @@
               @change="generateCurp"
             ></v-text-field>
           </v-col>
-          <v-col cols="12" xs="5">
-            <v-text-field v-model="cliente.curp" label="CURP" disabled readonly></v-text-field>
+          <v-col cols="12" xs="5" v-if="!esReferencia">
+            <v-text-field v-model="cliente.curp" label="CURP"></v-text-field>
           </v-col>
-          <v-col cols="12" xs="3">
+          <v-col cols="12" xs="3" v-if="!esReferencia">
             <v-text-field
               v-model="homoclave"
               :error-messages="homoclaveErrors"
@@ -107,7 +107,7 @@
               @change="generateCurp"
             ></v-text-field>
           </v-col>
-          <v-col cols="12" xs="4">
+          <v-col cols="12" xs="4" v-if="!esReferencia">
             <v-text-field
               v-model="cliente.ocr"
               :error-messages="ocrErrors"
@@ -120,7 +120,12 @@
             ></v-text-field>
           </v-col>
           <v-col cols="12" xs="7" md="4">
-            <v-radio-group row v-model="cliente.sexo" :error-messages="sexoErrors" @change="generateCurp">
+            <v-radio-group
+              row
+              v-model="cliente.sexo"
+              :error-messages="sexoErrors"
+              @change="generateCurp"
+            >
               <div>Sexo:</div>
               <v-radio label="Hombre" value="H"></v-radio>
               <v-radio label="Mujer" value="M"></v-radio>
@@ -135,7 +140,7 @@
               label="El solicitante es casado."
             ></v-switch>
           </v-col>
-          <v-col cols="12" xs="7">
+          <v-col cols="12" xs="7" v-if="!esReferencia">
             <v-select
               v-model="cliente.entidad"
               :items="items"
@@ -161,7 +166,7 @@
               @change="generateCurp"
             ></v-text-field>
           </v-col>
-          <v-col cols="12">
+          <v-col cols="12" v-if="!esReferencia">
             <v-text-field
               v-model="cliente.direccion"
               :error-messages="addressErrors"
@@ -175,7 +180,7 @@
           </v-col>
         </v-row>
       </v-container>
-    </v-form>    
+    </v-form>
   </div>
 </template>
 
@@ -191,11 +196,12 @@ export default {
       type: Object,
       required: true
     },
-    comisionistas:{
+    comisionistas: {
       type: Array,
       required: true
     },
-    esReferencia: Boolean
+    esReferencia: Boolean,
+    esAval: Boolean
   },
   mixins: [validationMixin],
   validations: {
@@ -214,7 +220,10 @@ export default {
   },
   data() {
     return {
-      homoclave: this.initialClient.curp.length == 18 ? this.initialClient.curp.substr(17,2) : "00",
+      homoclave:
+        this.initialClient.curp.length == 18
+          ? this.initialClient.curp.substr(17, 2)
+          : "00",
       maxDate:
         new Date().toISOString().substr(0, 4) -
         18 +
@@ -264,7 +273,7 @@ export default {
         { id: "MEX-YUC", value: "YN", label: "Yucatán (YUC)" },
         { id: "MEX-ZAC", value: "ZS", label: "Zacatecas (ZAC)" }
       ],
-      switch1: false,
+      switch1: false
       // comisionistas: [],
     };
   },
@@ -286,7 +295,7 @@ export default {
         this.cliente.bornDate != "" &&
         this.cliente.entidad != "" &&
         this.cliente.sexo != "" &&
-        this.homoclave != "" 
+        this.homoclave != ""
       ) {
         this.cliente.amaterno =
           this.cliente.amaterno == undefined ? "XXXXX" : this.cliente.amaterno;
@@ -388,8 +397,8 @@ export default {
     setDateCurp() {
       let year = this.cliente.bornDate.substring(2, 4);
       let month = this.cliente.bornDate.substring(5, 7);
-      let day = this.cliente.bornDate.substring(8, 10);      
-      this.cliente.curp += year + month + day
+      let day = this.cliente.bornDate.substring(8, 10);
+      this.cliente.curp += year + month + day;
       // console.log(this.cliente.bornDate)
     },
     getSecondChar(apaternoFiltrado) {
@@ -427,7 +436,13 @@ export default {
           partirNombre[0] == "MARYA" ||
           partirNombre[0] == "JOCÉ" ||
           partirNombre[0] == "JOZE" ||
-          partirNombre[0] == "JOZÉ"
+          partirNombre[0] == "JOZÉ" ||
+          partirNombre[0] == "DE" ||
+          partirNombre[0] == "LOS" ||
+          partirNombre[0] == "LAS" ||
+          partirNombre[0] == "DEL" ||
+          partirNombre[0] == "LA" ||
+          partirNombre[0] == "EL"
         ) {
           this.cliente.curp += partirNombre[1].substring(0, 1);
           return partirNombre[1];
@@ -509,7 +524,7 @@ export default {
       } else {
         return partirApaterno[0];
       }
-    },    
+    },
     clear() {
       this.nuevoCliente = {};
       this.menu = false;
@@ -519,16 +534,25 @@ export default {
       this.$refs.menu.save(date);
     },
     uppercasedName() {
-      this.cliente.nombre = this.cliente.nombre.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");      
+      this.cliente.nombre = this.cliente.nombre.toUpperCase().normalize("NFD");
     },
     uppercasedLastname() {
-      this.cliente.apaterno = this.cliente.apaterno.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
-      this.cliente.amaterno = this.cliente.amaterno.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+      this.cliente.apaterno = this.cliente.apaterno
+        .toUpperCase()
+        .normalize("NFD");
+      // .replace(/[\u0300-\u036f]/g, "");
+      this.cliente.amaterno = this.cliente.amaterno
+        .toUpperCase()
+        .normalize("NFD");
+      // .replace(/[\u0300-\u036f]/g, "");
     },
     uppercasedAddress() {
-      this.cliente.direccion = this.cliente.direccion.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+      this.cliente.direccion = this.cliente.direccion
+        .toUpperCase()
+        .normalize("NFD");
+      // .replace(/[\u0300-\u036f]/g, "");
     },
-    submit(){
+    submit() {
       this.$v.$touch();
       return this.$v.$error;
     }

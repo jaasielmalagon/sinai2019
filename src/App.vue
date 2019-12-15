@@ -1,6 +1,17 @@
 <template>
   <v-app>
-    <!-- <div> -->
+    <v-navigation-drawer app v-model="drawer" absolute temporary :class="color">
+      <v-list nav dense>
+        <v-list-item-group :v-model="null" active-class="deep-purple--text text--accent-4">
+          <v-list-item v-for="(item, i) in items" :key="i" router :to="item.url">
+            <v-list-item-title>
+              <v-icon>{{ item.icon }}</v-icon>
+              {{ item.title }}
+            </v-list-item-title>
+          </v-list-item>
+        </v-list-item-group>
+      </v-list>
+    </v-navigation-drawer>
     <v-app-bar app :color="color" dense dark>
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
 
@@ -32,22 +43,9 @@
           </v-list-item>
         </v-list>
       </v-menu>
-    </v-app-bar>
-    <!-- </div> -->
-    <v-navigation-drawer app v-model="drawer" absolute temporary :class="color">
-      <v-list nav dense>
-        <v-list-item-group :v-model="null" active-class="deep-purple--text text--accent-4">
-          <v-list-item v-for="(item, i) in items" :key="i" router :to="item.url">
-            <v-list-item-title>
-              <v-icon>{{ item.icon }}</v-icon>
-              {{ item.title }}
-            </v-list-item-title>
-          </v-list-item>
-        </v-list-item-group>
-      </v-list>
-    </v-navigation-drawer>
+    </v-app-bar>    
     <v-content class="blue-grey lighten-4">
-      <v-container>
+      <v-container fluid>
         <router-view />
       </v-container>
     </v-content>

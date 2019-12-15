@@ -1,15 +1,15 @@
 <template>
-  <v-container grid-list-md text-xs-center>
+  <v-container fluid>
     <v-card class="light-blue lighten-5">
       <v-card-title>
-        <v-container grid-list-md text-xs-center>
-          <v-row>
-            <v-col xs12 md4>
+        <v-container fluid>
+          <v-row no-gutters>
+            <v-col cols="12" xs="12" md="4">
               <div class="display-2 font-weight-light">Préstamos</div>
             </v-col>
-            <v-col xs12 md8>
-              <v-row>
-                <v-col xs12 md6>
+            <v-col cols="12" xs="12" md="8">
+              <v-row no-gutters>
+                <v-col cols="12" xs="12" md="4">
                   <v-select
                     @change="filtrar($event)"
                     :items="comisionistas"
@@ -19,7 +19,7 @@
                     no-data-text="No hay comisionistas"
                   ></v-select>
                 </v-col>
-                <v-col xs12 md6>
+                <v-col cols="12" xs="12" md="6" offset-md="1">
                   <v-text-field
                     v-model="search"
                     append-icon="search"
@@ -33,7 +33,7 @@
           </v-row>
         </v-container>
       </v-card-title>
-      <v-card-text>
+      <v-card-text style="padding: 0">
         <v-data-table
           :headers="headers"
           :items="filteredItems"
@@ -41,8 +41,33 @@
           :loading="loading"
           loading-text="Cargando... espere, por favor."
           class="elevation-1"
+          :items-per-page="5"
           dense
         >
+          <template v-slot:item.montototal="{ item }">
+            <strong>$</strong>
+            {{item.montototal.toFixed(2)}}
+          </template>
+          <template v-slot:item.capital="{ item }">
+            <strong>$</strong>
+            {{item.capital.toFixed(2)}}
+          </template>
+          <template v-slot:item.intereses="{ item }">
+            <strong>$</strong>
+            {{item.intereses.toFixed(2)}}
+          </template>
+          <template v-slot:item.adeudomontototal="{ item }">
+            <strong>$</strong>
+            {{item.adeudomontototal.toFixed(2)}}
+          </template>
+          <template v-slot:item.adeudocapital="{ item }">
+            <strong>$</strong>
+            {{item.adeudocapital.toFixed(2)}}
+          </template>
+          <template v-slot:item.adeudointereses="{ item }">
+            <strong>$</strong>
+            {{item.adeudointereses.toFixed(2)}}
+          </template>
           <template v-slot:item.activo="{ item }">
             <v-chip v-if="!item.activo" color="red" text-color="white">Inactivo</v-chip>
             <v-chip v-if="item.activo" color="green" text-color="white">Activo</v-chip>
@@ -64,6 +89,28 @@
               El parámetro buscado
               <strong>"{{search}}"</strong> no generó resultados.
             </v-alert>
+          </template>
+          <template v-slot:body.append>
+            <td colspan="4"></td>
+            <td class="text-center">
+              <strong>$ {{totalCapital.toFixed(2)}}</strong>
+            </td>
+            <td class="text-center">
+              <strong>$ {{totalInteres.toFixed(2)}}</strong>
+            </td>
+            <td class="text-center">
+              <strong>$ {{totalPagos.toFixed(2)}}</strong>
+            </td>
+            <td class="text-center">
+              <strong>$ {{adeudoTotalCapital.toFixed(2)}}</strong>
+            </td>
+            <td class="text-center">
+              <strong>$ {{adeudoTotalInteres.toFixed(2)}}</strong>
+            </td>
+            <td class="text-center">
+              <strong>$ {{adeudoTotalPagos.toFixed(2)}}</strong>
+            </td>
+            <td colspan="5"></td>
           </template>
         </v-data-table>
       </v-card-text>
@@ -140,22 +187,46 @@ export default {
           value: "inicio"
         },
         {
-          text: "Capital",
+          text: "Capital inicial",
           align: "center",
           sortable: true,
           value: "capital"
         },
         {
-          text: "Intereses",
+          text: "Intereses inicial",
           align: "center",
           sortable: true,
           value: "intereses"
         },
         {
-          text: "Monto total",
+          text: "Total inicial",
           align: "center",
           sortable: true,
           value: "montototal"
+        },
+        {
+          text: "Adeudo capital",
+          align: "center",
+          sortable: true,
+          value: "adeudocapital"
+        },
+        {
+          text: "Adeudo intereses",
+          align: "center",
+          sortable: true,
+          value: "adeudointereses"
+        },
+        {
+          text: "Total adeudo",
+          align: "center",
+          sortable: true,
+          value: "adeudomontototal"
+        },
+        {
+          text: "Ultimo pago",
+          align: "center",
+          sortable: true,
+          value: "ultimoPago"
         },
         {
           text: "Tipo",
@@ -187,6 +258,50 @@ export default {
       comisionistas: []
     };
   },
+  computed: {
+    totalPagos() {
+      let total = 0;
+      for (let i = 0; i < this.filteredItems.length; i++) {
+        total = total + this.filteredItems[i].montototal;
+      }
+      return total;
+    },
+    totalInteres() {
+      let total = 0;
+      for (let i = 0; i < this.filteredItems.length; i++) {
+        total = total + this.filteredItems[i].intereses;
+      }
+      return total;
+    },
+    totalCapital() {
+      let total = 0;
+      for (let i = 0; i < this.filteredItems.length; i++) {
+        total = total + this.filteredItems[i].capital;
+      }
+      return total;
+    },
+    adeudoTotalPagos() {
+      let total = 0;
+      for (let i = 0; i < this.filteredItems.length; i++) {
+        total = total + this.filteredItems[i].adeudomontototal;
+      }
+      return total;
+    },
+    adeudoTotalInteres() {
+      let total = 0;
+      for (let i = 0; i < this.filteredItems.length; i++) {
+        total = total + this.filteredItems[i].adeudointereses;
+      }
+      return total;
+    },
+    adeudoTotalCapital() {
+      let total = 0;
+      for (let i = 0; i < this.filteredItems.length; i++) {
+        total = total + this.filteredItems[i].adeudocapital;
+      }
+      return total;
+    }
+  },
   methods: {
     deleteItem(item) {
       // this.editedIndex = this.teams.indexOf(item);
@@ -211,22 +326,48 @@ export default {
       for (let key in items) {
         // console.log(items[key]);
         // if (items[key].activo == true) {
-        this.items.push({
-          key: key,
-          activo: items[key].activo,
-          inicio: items[key].inicio,
-          solicitud: items[key].solicitud,
-          cliente: items[key].cliente,
-          tipo: items[key].tipo,
-          capital: items[key].capital,
-          tasa: items[key].tasa,
-          intereses: items[key].intereses,
-          montototal: items[key].capital + items[key].intereses,
-          plazo: items[key].plazo,
-          comisionista: items[key].comisionista,
-          pago: items[key].pago,
-          tabla: items[key].tabla
-        });
+        let monto = 0;
+        let capital = 0;
+        let intereses = 0;
+        let ultimoPago = null;
+        this.db
+          .ref("/pagos")
+          .orderByChild("idPrestamo")
+          .equalTo(key)
+          .on("value", snapshot => {
+            // console.log(snapshot.val());
+            let snap = snapshot.val();
+            if (snap != null) {
+              for (let k in snap) {
+                monto = monto + snap[k].monto;
+                capital = capital + snap[k].capital;
+                intereses = intereses + snap[k].interes;
+                ultimoPago = snap[k].fechaPago;
+              }
+            }
+            this.items.push({
+              key: key,
+              activo: items[key].activo,
+              inicio: items[key].inicio,
+              solicitud: items[key].solicitud,
+              cliente: items[key].cliente,
+              tipo: items[key].tipo,              
+              tasa: items[key].tasa,
+              capital: items[key].capital,
+              intereses: items[key].intereses,
+              montototal: items[key].capital + items[key].intereses,
+              adeudocapital: items[key].capital - capital,
+              adeudointereses: items[key].intereses - intereses,
+              adeudomontototal: items[key].capital + items[key].intereses - monto,
+              plazo: items[key].plazo,
+              comisionista: items[key].comisionista,
+              pago: items[key].pago,
+              tabla: items[key].tabla,
+              folio: items[key].folio,
+              ultimoPago: ultimoPago
+            });
+          });
+
         // }
       }
       // console.log(this.items)
@@ -246,7 +387,8 @@ export default {
     //CARGAR ITEMS
     this.db
       .ref("/prestamos")
-      .orderByKey()
+      .orderByChild("activo")
+      .equalTo(true)
       .on("value", snapshot => {
         this.loadItems(snapshot.val());
         this.loading = false;
