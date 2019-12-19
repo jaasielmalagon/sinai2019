@@ -7,20 +7,19 @@ import Prestamos from './views/Prestamos'
 import Clientes from './views/Clientes'
 import Pagos from './views/Pagos'
 import Gastos from './views/Gastos'
-
 Vue.use(Router);
-
 export default new Router({
     mode: 'history',
     routes: [{
             path: '/gastos',
             name: 'gastos',
-            component: Gastos
+            component: Gastos,
+            // beforeEnter: user.uid != null
         }, {
             path: '/pagos',
             name: 'pagos',
             component: Pagos,
-            // beforeEnter: guestUser
+            // beforeEnter: user != null
         },
         // {
         //     path: '/cierrediario',
@@ -32,12 +31,13 @@ export default new Router({
             path: '/login',
             name: 'login',
             component: Login,
-            // beforeEnter: guestUser
+            // beforeEnter: user.uid == null
         },
         {
             path: '/',
             name: 'home',
-            component: Home
+            component: Login,
+            // beforeEnter: user.uid == null
         },
         {
             path: '/prestamos',

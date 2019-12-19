@@ -430,272 +430,268 @@ export default {
       Object.assign(this.referencia, this.defaultCliente);
       // Object.assign(this.selectedItem, this.defaultCliente);
     },
+    insertarDiario() {
+      let cliente = this.normalizedObject(this.clientediario, 1, "D");
+      this.searchClient(cliente);
+      setTimeout(() => {
+        if (this.clientFound == false) {
+          let clienteKey = this.db.ref("personas/").push(cliente).key;
+          if (clienteKey != "") {
+            this.db
+              .ref("solicitudes/")
+              .push({
+                solicitante: clienteKey
+              })
+              .then(() => {
+                this.loadingDialog = false;
+                alertify.success("Cliente guardado exitosamente");
+                Object.assign(this.clientediario, this.defaultCliente);
+              });
+          }
+        } else {
+          this.loadingDialog = false;
+          alertify.error("Los datos ingresados ya se encuentran registrados.");
+        }
+      }, 1800);
+    },
+    insertarSemanal() {
+      let solicitante = this.normalizedObject(this.solicitante, 1, "S");
+      let existeSolicitante = this.searchClient(solicitante);
+      let conyuge = this.normalizedObject(this.conyuge, 2, "S");
+      // let existeConyuge = this.searchClient(conyuge);
+      let referencia = this.normalizedObject(this.referencia, 3, "S");
+      // let existeReferencia = this.searchClient(referencia);
+      let aval = this.normalizedObject(this.aval, 4, "S");
+      let existeAval = this.searchClient(aval);
+      setTimeout(() => {
+        // console.log(solicitante);
+        console.log(this.clientFound);
+        // return;
+        if (
+          // this.existeSolicitante != true &&
+          // this.existeConyuge != true &&
+          // this.existeReferencia != true &&
+          // this.existeAval != true
+          this.clientFound == false
+        ) {
+          let solicitanteKey = this.db.ref("personas/").push(solicitante).key;
+          let conyugeKey = this.db.ref("personas/").push(conyuge).key;
+          let referenciaKey = this.db.ref("personas/").push(referencia).key;
+          let avalKey = this.db.ref("personas/").push(aval).key;
+          if (
+            solicitanteKey != "" &&
+            // conyugeKey != "" &&
+            // referenciaKey != "" &&
+            avalKey != ""
+          ) {
+            this.db
+              .ref("solicitudes/")
+              .push({
+                solicitante: solicitanteKey,
+                conyuge: conyugeKey,
+                referencia: referenciaKey,
+                aval: avalKey
+              })
+              .then(() => {
+                this.loadingDialog = false;
+                alertify.success("Solicitud guardada exitosamente");
+              });
+          }
+        } else {
+          let quien = "";
+          console.log(this.whoIsFound);
+          for (let i = 0; i < this.whoIsFound.length; i++) {
+            quien +=
+              this.whoIsFound[i].nombre +
+              " " +
+              this.whoIsFound[i].apaterno +
+              " " +
+              this.whoIsFound[i].amaterno;
+            if (this.whoIsFound.length > 1 && this.whoIsFound.length + 1 < i) {
+              quien += ", ";
+            }
+          }
+          alertify.error(
+            "Los datos de " + quien + " ya se encuentran registrados."
+          );
+          this.loadingDialog = false;
+        }
+      }, 2500);
+    },
+    actualizarSemanal() {
+      let flag = true;
+      if (flag) {
+        //ACTUALIZA SOLICITANTE
+        this.db.ref("/personas/" + this.solicitante.key).transaction(
+          () => {
+            return this.normalizedObject(this.solicitante, 1, "S");
+          },
+          (error, commited) => {
+            if (error) {
+              flag = false;
+              console.error(error);
+            } else if (!commited) {
+              flag = false;
+            }
+          }
+        );
+      }
+      if (
+        flag &&
+        typeof this.conyuge.key != undefined &&
+        typeof this.conyuge.key != ""
+      ) {
+        //ACTUALIZA CONYUGE
+        this.db.ref("/personas/" + this.conyuge.key).transaction(
+          () => {
+            return this.normalizedObject(this.conyuge, 2, "S");
+          },
+          (error, commited) => {
+            if (error) {
+              flag = false;
+              console.error(error);
+            } else if (!commited) {
+              flag = false;
+            }
+          }
+        );
+      }
+      if (
+        flag &&
+        typeof this.referencia.key != undefined &&
+        typeof this.referencia.key != ""
+      ) {
+        //ACTUALIZA REFERENCIA
+        this.db.ref("/personas/" + this.referencia.key).transaction(
+          () => {
+            return this.normalizedObject(this.referencia, 3, "S");
+          },
+          (error, commited) => {
+            if (error) {
+              flag = false;
+              console.error(error);
+            } else if (!commited) {
+              flag = false;
+            }
+          }
+        );
+      }
+      if (
+        flag &&
+        typeof this.aval.key != undefined &&
+        typeof this.aval.key != ""
+      ) {
+        //ACTUALIZA AVAL
+        this.db.ref("/personas/" + this.aval.key).transaction(
+          () => {
+            return this.normalizedObject(this.aval, 4, "S");
+          },
+          (error, commited) => {
+            if (error) {
+              flag = false;
+              console.error(error);
+            } else if (!commited) {
+              flag = false;
+            }
+          }
+        );
+      }
+      console.log(flag);
+      this.loadingDialog = false;
+      if (flag) {
+        //ARROJA EL MENSAJE FINAL DEPENDIENDO EL ESTADO DE LA TRANSACCIÓN
+        alertify.success("Actualización completada exitosamente.");
+      } else {
+        alertify.error("Actualización no realizada.");
+      }
+    },
+    actualizarDiario() {
+      this.db.ref("/personas/" + this.solicitante.key).transaction(
+        () => {
+          return this.normalizedObject(this.clientediario, 1, "D");
+        },
+        (error, commited) => {
+          console.log(error, commited);
+          if (error) {
+            //ARROJA EL MENSAJE FINAL DEPENDIENDO EL ESTADO DE LA TRANSACCIÓN
+            this.loadingDialog = false;
+            alertify.error("Ocurrió un error. Actualización no realizada.");
+          } else {
+            this.loadingDialog = false;
+            alertify.success("Actualización completada exitosamente.");
+          }
+        }
+      );
+    },
+    guardarDiario() {
+      //Para clientes de tipo diario
+      if (this.tipoCliente == "D" && this.$refs.form0.submit() == true) {
+        this.loadingDialog = false;
+        alertify.error(
+          "Existen campos vacíos en la solicitud, por favor rellene todos los campos."
+        );
+      } else if (
+        this.tipoCliente == "D" &&
+        this.$refs.form0.submit() == false
+      ) {
+        //GUARDAR CLIENTE TIPO DIARIO EN LA BDD
+        if (this.solicitante.key != null && this.solicitante.key != undefined) {
+          //ACTUALIZAR CLIENTE
+          this.actualizarDiario();
+        } else {
+          //GUARDAR NUEVO CLIENTE
+          this.insertarDiario();
+        }
+      }
+    },
+    guardarSemanal() {
+      if (
+        //ERROR clientes de tipo semanal por campos vacíos en los forms
+        this.tipoCliente == "S" &&
+        this.$refs.form1.submit() == true &&
+        this.$refs.form4.submit() == true
+      ) {
+        this.loadingDialog = false;
+        alertify.error(
+          "Existen campos vacíos en la solicitud, por favor rellene todos los campos."
+        );
+      } else if (
+        //INSERTAR EL CLIENTE SEMANAL
+        this.tipoCliente == "S" &&
+        this.$refs.form1.submit() == false &&
+        this.$refs.form4.submit() == false
+      ) {
+        if (
+          //ACTUALIZARLO SI YA EXISTE
+          this.solicitante.curp.length >= 16 &&
+          this.solicitante.key != "" &&
+          this.aval.curp.length >= 16 &&
+          this.aval.key != ""
+        ) {
+          this.actualizarSemanal();
+        } else if (
+          //INSERTAR SI NO EXISTE EL CLIENTE
+          this.solicitante.curp.length >= 16 &&
+          this.solicitante.key == "" &&
+          this.aval.curp.length >= 16
+        ) {
+          this.insertarSemanal();
+        } else {
+          this.loadingDialog = false;
+          alertify.error(
+            "Los datos no pudieron ser guardados debido a un error desconocido."
+          );
+        }
+      }
+    },
     saveData() {
       this.loadingDialog = true;
       this.whoIsFound = [];
       this.clientFound = false;
-      console.log(this.tabs);
       if (this.tabs == "one") {
-        //Para clientes de tipo diario
-        if (this.tipoCliente == "D" && this.$refs.form0.submit() == true) {
-          this.loadingDialog = false;
-          alertify.error(
-            "Existen campos vacíos en la solicitud, por favor rellene todos los campos."
-          );
-        } else if (
-          this.tipoCliente == "D" &&
-          this.$refs.form0.submit() == false
-        ) {
-          //GUARDAR CLIENTE TIPO DIARIO EN LA BDD
-          console.log(this.solicitante);
-          if (
-            this.solicitante.key != null &&
-            this.solicitante.key != undefined
-          ) {
-            //ACTUALIZAR CLIENTE
-            this.db.ref("/personas/" + this.solicitante.key).transaction(
-              () => {
-                return this.normalizedObject(this.clientediario, 1, "D");
-              },
-              (error, commited) => {
-                console.log(error, commited);
-                if (error) {
-                  //ARROJA EL MENSAJE FINAL DEPENDIENDO EL ESTADO DE LA TRANSACCIÓN
-                  this.loadingDialog = false;
-                  alertify.error("Ocurrió un error. Actualización no realizada.");
-                } else {
-                  this.loadingDialog = false;
-                  alertify.success("Actualización completada exitosamente.");                  
-                }
-              }
-            );            
-          } else {
-            //GUARDAR NUEVO CLIENTE
-            let cliente = this.normalizedObject(this.clientediario, 1, "D");
-            this.searchClient(cliente);
-            setTimeout(() => {
-              console.log(cliente);
-              console.log(this.clientFound);
-              // return;
-              if (this.clientFound == false) {
-                // console.log("Insertando en la BDD");
-                let clienteKey = this.db.ref("personas/").push(cliente).key;
-                if (clienteKey != "") {
-                  this.db
-                    .ref("solicitudes/")
-                    .push({
-                      solicitante: clienteKey
-                    })
-                    .then(() => {
-                      this.loadingDialog = false;
-                      alertify.success("Cliente guardado exitosamente");
-                      Object.assign(this.clientediario, this.defaultCliente);
-                    });
-                }
-              } else {
-                this.loadingDialog = false;
-                alertify.error(
-                  "Los datos ingresados ya se encuentran registrados."
-                );
-              }
-            }, 1800);
-          }
-        }
+        this.guardarDiario();
       } else if (this.tabs == "two") {
-        console.log(
-          this.$refs.form1.submit(),
-          this.$refs.form4.submit(),
-          this.tipoCliente
-        );
-        if (
-          //ERROR clientes de tipo semanal
-          this.tipoCliente == "S" &&
-          this.$refs.form1.submit() == true &&
-          this.$refs.form4.submit() == true
-        ) {
-          this.loadingDialog = false;
-          alertify.error(
-            "Existen campos vacíos en la solicitud, por favor rellene todos los campos."
-          );
-        } else if (
-          //INSERTAR EL CLIENTE SEMANAL
-          this.tipoCliente == "S" &&
-          this.$refs.form1.submit() == false &&
-          this.$refs.form4.submit() == false
-        ) {
-          if (
-            //ACTUALIZARLO SI YA EXISTE
-            this.solicitante.curp.length >= 16 &&
-            this.solicitante.key != "" &&
-            this.aval.curp.length >= 16 &&
-            this.aval.key != ""
-          ) {
-            let flag = true;
-            if (flag) {
-              //ACTUALIZA SOLICITANTE
-              this.db.ref("/personas/" + this.solicitante.key).transaction(
-                () => {
-                  return this.normalizedObject(this.solicitante, 1, "S");
-                },
-                (error, commited) => {
-                  if (error) {
-                    flag = false;
-                    console.error(error);
-                  } else if (!commited) {
-                    flag = false;
-                  }
-                }
-              );
-            }
-            if (
-              flag &&
-              typeof this.conyuge.key != undefined &&
-              typeof this.conyuge.key != ""
-            ) {
-              //ACTUALIZA CONYUGE
-              this.db.ref("/personas/" + this.conyuge.key).transaction(
-                () => {
-                  return this.normalizedObject(this.conyuge, 2, "S");
-                },
-                (error, commited) => {
-                  if (error) {
-                    flag = false;
-                    console.error(error);
-                  } else if (!commited) {
-                    flag = false;
-                  }
-                }
-              );
-            }
-            if (
-              flag &&
-              typeof this.referencia.key != undefined &&
-              typeof this.referencia.key != ""
-            ) {
-              //ACTUALIZA REFERENCIA
-              this.db.ref("/personas/" + this.referencia.key).transaction(
-                () => {
-                  return this.normalizedObject(this.referencia, 3, "S");
-                },
-                (error, commited) => {
-                  if (error) {
-                    flag = false;
-                    console.error(error);
-                  } else if (!commited) {
-                    flag = false;
-                  }
-                }
-              );
-            }
-            if (
-              flag &&
-              typeof this.aval.key != undefined &&
-              typeof this.aval.key != ""
-            ) {
-              //ACTUALIZA AVAL
-              this.db.ref("/personas/" + this.aval.key).transaction(
-                () => {
-                  return this.normalizedObject(this.aval, 4, "S");
-                },
-                (error, commited) => {
-                  if (error) {
-                    flag = false;
-                    console.error(error);
-                  } else if (!commited) {
-                    flag = false;
-                  }
-                }
-              );
-            }
-            console.log(flag);
-            this.loadingDialog = false;
-            if (flag) {
-              //ARROJA EL MENSAJE FINAL DEPENDIENDO EL ESTADO DE LA TRANSACCIÓN
-              alertify.success("Actualización completada exitosamente.");
-            } else {
-              alertify.error("Actualización no realizada.");
-            }
-            // this.closeAlert();
-          } else if (
-            //INSERTAR SI NO EXISTE EL CLIENTE
-            this.solicitante.curp.length >= 16 &&
-            this.solicitante.key == "" &&
-            this.aval.curp.length >= 16
-          ) {
-            let solicitante = this.normalizedObject(this.solicitante, 1, "S");
-            let existeSolicitante = this.searchClient(solicitante);
-            let conyuge = this.normalizedObject(this.conyuge, 2, "S");
-            // let existeConyuge = this.searchClient(conyuge);
-            let referencia = this.normalizedObject(this.referencia, 3, "S");
-            // let existeReferencia = this.searchClient(referencia);
-            let aval = this.normalizedObject(this.aval, 4, "S");
-            let existeAval = this.searchClient(aval);
-            setTimeout(() => {
-              // console.log(solicitante);
-              console.log(this.clientFound);
-              // return;
-              if (
-                // this.existeSolicitante != true &&
-                // this.existeConyuge != true &&
-                // this.existeReferencia != true &&
-                // this.existeAval != true
-                this.clientFound == false
-              ) {
-                let solicitanteKey = this.db.ref("personas/").push(solicitante)
-                  .key;
-                let conyugeKey = this.db.ref("personas/").push(conyuge).key;
-                let referenciaKey = this.db.ref("personas/").push(referencia)
-                  .key;
-                let avalKey = this.db.ref("personas/").push(aval).key;
-                if (
-                  solicitanteKey != "" &&
-                  // conyugeKey != "" &&
-                  // referenciaKey != "" &&
-                  avalKey != ""
-                ) {
-                  this.db
-                    .ref("solicitudes/")
-                    .push({
-                      solicitante: solicitanteKey,
-                      conyuge: conyugeKey,
-                      referencia: referenciaKey,
-                      aval: avalKey
-                    })
-                    .then(() => {
-                      this.loadingDialog = false;
-                      alertify.success("Solicitud guardada exitosamente");
-                    });
-                }
-              } else {
-                let quien = "";
-                console.log(this.whoIsFound);
-                for (let i = 0; i < this.whoIsFound.length; i++) {
-                  quien +=
-                    this.whoIsFound[i].nombre +
-                    " " +
-                    this.whoIsFound[i].apaterno +
-                    " " +
-                    this.whoIsFound[i].amaterno;
-                  if (
-                    this.whoIsFound.length > 1 &&
-                    this.whoIsFound.length + 1 < i
-                  ) {
-                    quien += ", ";
-                  }
-                }
-                alertify.error(
-                  "Los datos de " + quien + " ya se encuentran registrados."
-                );
-                this.loadingDialog = false;
-              }
-            }, 2500);
-          } else {
-            this.loadingDialog = false;
-            alertify.error(
-              "Los datos no pudieron ser guardados debido a un error desconocido."
-            );
-          }
-        }
+        this.guardarSemanal();
       }
     },
     searchClient(cliente) {

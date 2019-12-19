@@ -38,7 +38,7 @@
             </v-toolbar-items>
           </v-toolbar>
           <v-card-text>
-            <v-col xs12 md4 d-flex offset-md4 style="margin-bottom: 5px" v-if="!showForm">
+            <!-- <v-col xs12 md4 d-flex offset-md4 style="margin-bottom: 5px" v-if="!showForm">
               <div>
                 <v-alert
                   v-model="alert.show"
@@ -49,7 +49,7 @@
                   class="text-xs-center"
                 >{{alert.message}}</v-alert>
               </div>
-            </v-col>
+            </v-col> -->
 
             <v-col xs12 md8 offset-md2 d-flex v-if="showForm && prestamo.cliente != ''">
               <v-card color="grey lighten-5">
@@ -99,11 +99,12 @@
 
             <v-col
               id="detalles-prestamo"
-              xs12
-              md10
-              offset-md1
-              xl8
-              offset-xl2
+              cols="12"
+              xs="12"
+              md="10"
+              offset-md="1"
+              xl="8"
+              offset-xl="2"
               d-flex
               v-if="prestamo.tabla != ''"
             >
@@ -572,7 +573,7 @@ export default {
       .orderByKey()
       .on("value", snapshot => {
         let snap = snapshot.val();
-        console.log(snap);
+        // console.log(snap);
         if (snap != null) {
           for (let key in snap) {
             this.folio++;
