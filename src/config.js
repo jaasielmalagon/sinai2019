@@ -1,5 +1,4 @@
 import Firebase from "firebase";
-import store from "./store";
 var conf = {
     apiKey: "AIzaSyCuyEPDRJ1wZgHKM-vNSDa9etD0O8BAYGU",
     authDomain: "sinai-28c9b.firebaseapp.com",
@@ -12,10 +11,9 @@ var conf = {
 Firebase.initializeApp(conf);
 let db = Firebase.database();
 let auth = Firebase.auth();
-auth.onAuthStateChanged(user => {
-    store.dispatch("fetchUser", user);
-});
+let googleAuth = new Firebase.auth.GoogleAuthProvider();
 export default {
     db: db,
-    auth: auth
+    auth: auth,
+    googleAuth
 }

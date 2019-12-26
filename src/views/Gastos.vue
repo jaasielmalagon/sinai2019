@@ -183,6 +183,11 @@ export default {
       this.alert.style = type;
       this.alert.message = msj;
       this.alert.show = true;
+    },
+    verifyLogin(){
+      if (this.user.loggedIn == false) {
+        this.$router.replace({ name: "login" });
+      }
     }
   },
   created() {}

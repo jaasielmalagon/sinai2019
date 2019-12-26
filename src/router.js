@@ -2,7 +2,6 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Login from './views/Login'
 import NotFound from './views/NotFound'
-import Home from './views/Home'
 import Prestamos from './views/Prestamos'
 import Clientes from './views/Clientes'
 import Pagos from './views/Pagos'
@@ -10,6 +9,7 @@ import Gastos from './views/Gastos'
 Vue.use(Router);
 export default new Router({
     mode: 'history',
+    base: process.env.BASE_URL,
     routes: [{
             path: '/gastos',
             name: 'gastos',

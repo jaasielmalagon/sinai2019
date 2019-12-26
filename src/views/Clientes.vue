@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid>
+  <v-container fluid v-if="user.loggedIn">
     <v-row no-gutters>
       <v-col cols="12" xs="12">
         <div class="text-center">
@@ -165,7 +165,7 @@
       </v-dialog>
     </v-row>
     <loading-dialog :activator="loadingDialog"></loading-dialog>
-    <!-- <pre>{{$data}}</pre> -->
+    <!-- <pre>{{user}}</pre> -->
   </v-container>
 </template>
 
@@ -176,7 +176,7 @@ import ClientesTable from "../components/ClientesTable";
 import LoadingDialog from "../components/LoadingDialog";
 import config from "../config";
 import { setTimeout } from "timers";
-
+import { mapGetters } from "vuex";
 export default {
   name: "Clientes",
   components: { ClienteForm, ClientesTable, LoadingDialog, ClienteDiarioForm },
@@ -762,9 +762,27 @@ export default {
       this.alertStyle = type;
       this.alertMessage = msj;
       this.alertShow = true;
+    },
+    verifyLogin() {      
+      if (this.user.loggedIn == false) {
+        this.$router.replace({ name: "login" });
+      } else {
+        //CARGAR COMISIONISTAS
+        this.db.ref("/empleados").on("value", snapshot => {
+          this.comisionistas = [];
+          let items = snapshot.val();
+          for (let key in items) {
+            this.comisionistas.push(items[key]);
+          }
+        });
+      }
     }
   },
   computed: {
+    // map `this.user` to `this.$store.getters.user`
+    ...mapGetters({
+      user: "user"
+    }),
     activeFab() {
       switch (this.tabs) {
         case "one":
@@ -778,18 +796,8 @@ export default {
       }
     }
   },
-  created() {
-    //CARGAR COMISIONISTAS
-    this.db.ref("/empleados").on("value", snapshot => {
-      this.comisionistas = [];
-      let items = snapshot.val();
-      for (let key in items) {
-        this.comisionistas.push(items[key]);
-      }
-    });
-  },
   mounted() {
-    alertify.set("notifier", "position", "bottom-center");
+    this.verifyLogin();
   }
 };
 </script>
