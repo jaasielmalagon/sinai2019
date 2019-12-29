@@ -107,11 +107,9 @@ export default {
     googleLogin() {
       this.auth
         .signInWithPopup(this.provider)
-        .then(
-          result => {
-            this.cargarPermisos(result.user);
-          }
-        )
+        .then(data => {
+          this.cargarPermisos(data.user);
+        })
         .catch(function(error) {
           console.log(error);
           alertify.error("No se pudo iniciar la sesión con Google.");
@@ -137,10 +135,10 @@ export default {
       // [START authwithemail]
       this.auth
         .signInWithEmailAndPassword(this.email, this.password)
-        .then(data => {
-          this.cargarPermisos(this.user);
+        .then(data => {          
+          this.cargarPermisos(data.user.uid);
         })
-        .catch(function(error) {
+        .catch(error => {
           console.log(error);
           // Handle Errors here.
           var errorCode = error.code;
@@ -149,7 +147,7 @@ export default {
           if (errorCode === "auth/wrong-password") {
             alertify.error("Contraseña incorrecta.");
             return;
-          } else {            
+          } else {
             alertify.error(errorMessage);
             return;
           }
@@ -173,32 +171,30 @@ export default {
           console.log(errorCode, errorMessage);
         });
     },
-    cargarPermisos(user) {
-      console.log(user);
+    cargarPermisos(uid) {
+      // console.log(uid);
       this.db //A CONTINUACIÓN CARGAMOS NUEVAMENTE LOS DATOS DEL CLIENTE DESDE LA BDD
         .ref("/usuarios")
         .orderByChild("uid")
-        .equalTo(user.data.uid)
+        .equalTo(uid)
         .limitToFirst(1)
         .once("value", snapshot => {
-          let snap = snapshot.val();
+          // console.log(snapshot);
+          let snap = snapshot.val();          
           let permisos = null;
           for (let key in snap) {
             permisos = snap[key];
-            console.log(permisos);
           }
+          // console.log(permisos);
           if (permisos != null) {
             store.dispatch("fetchPermisos", permisos);
-            alertify.success("Bienvenido " + user.displayName);
+            alertify.success("Bienvenido " + this.user.displayName);
             this.$router.replace({ name: "clientes" });
-          } else {
-            // alertify.error(
-            //   "Los datos del usuario no pudieron ser cargados correctamente."
-            // );
+          } else {            
             alertify.alert(
               "Error al iniciar sesión",
               "Los datos del usuario no pudieron ser cargados correctamente.",
-              function() {}
+              () => {}
             );
           }
         });
@@ -210,5 +206,13 @@ export default {
       user: "user"
     })
   }
+  // mounted(){
+  //   this.db.ref("usuarios/").push({
+  //     uid: "K1Qzn5iZXhcWpKdMOIvbLAVjbLn1",
+  //     email: "jaasiel.mendez@gnp.com.mx",
+  //     admin: true,
+  //     normal: true
+  //   });
+  // }
 };
 </script>

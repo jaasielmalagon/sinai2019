@@ -165,7 +165,7 @@
       </v-dialog>
     </v-row>
     <loading-dialog :activator="loadingDialog"></loading-dialog>
-    <!-- <pre>{{user}}</pre> -->
+    <pre>{{user}}</pre>
   </v-container>
 </template>
 
